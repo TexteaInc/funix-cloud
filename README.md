@@ -4,6 +4,10 @@
 
 Funix Cloud Tool, help you deploy your local or git repository to Funix Cloud.
 
+## Close test (Limited test)
+
+We'll probably release a simple limited test of Funix Cloud (probably invite-only) in mid- or late-August to get feedback from our target audience.
+
 ## Requirements
 
 - Python 3.10+
@@ -21,7 +25,7 @@ pip install -e .
 
 ### From PyPI
 
-> In future, we have.
+> In the future, we have.
 
 ```bash
 pip install tengoku
@@ -37,7 +41,7 @@ tengoku --help
 
 ### In Web (by Funix Project)
 
-> In future, Funix now miss some features. Like default function page.
+> In the future, Funix now miss some features. Like default function page.
 
 ```bash
 tengoku web
