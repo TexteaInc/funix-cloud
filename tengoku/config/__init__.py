@@ -10,7 +10,7 @@ class ConfigType(TypedDict):
 
 DEFAULT_CONFIG: ConfigType = {
     "token": None,
-    "server": "http://127.0.0.1",
+    "server": "http://cloud-dev.funix.io",
 }
 
 CONFIG = {}
