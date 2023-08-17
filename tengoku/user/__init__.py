@@ -1,3 +1,5 @@
+import getpass
+
 import requests
 import rich
 
@@ -5,17 +7,7 @@ from tengoku.config import read_key_from_config, write_key_to_config
 from tengoku.routes import USER_ACTIONS
 
 
-def login(
-    username: str,
-    password: str,
-):
-    """
-    Login as a user.
-
-    Args:
-        username (str): The username of the user.
-        password (str): The password of the user.
-    """
+def __login(username: str, password: str):
     result = requests.post(
         read_key_from_config("server") + USER_ACTIONS["login"],
         json={
@@ -23,6 +15,18 @@ def login(
             "password": password,
         }
     ).json()
+    return result
+
+
+def login(username: str):
+    """
+    Login as a user.
+
+    Args:
+        username (str): The username of the user.
+    """
+    password = getpass.getpass("Password: ")
+    result = __login(username, password)
 
     if "code" in result and result["code"] == 200:
         token = result["data"]["token"]
@@ -35,15 +39,14 @@ def login(
 
 def register(
     username: str,
-    password: str,
 ):
     """
     Register a new user. You will automatically be logged in after registering.
 
     Args:
         username (str): The username of the new user.
-        password (str): The password of the new user.
     """
+    password = getpass.getpass("Password: ")
     result = requests.post(
         read_key_from_config("server") + USER_ACTIONS["register"],
         json={
@@ -53,6 +56,8 @@ def register(
     ).json()
     if "code" in result and result["code"] == 200:
         print("Successfully registered!")
+        login_result = __login(username, password)
+        write_key_to_config("token", login_result["data"]["token"])
     else:
         print("Failed to register!")
         rich.print(result)
