@@ -1,6 +1,6 @@
 import fire
 from tengoku.user import register, login, logout
-from tengoku.deploy import git, get_all_instances, query_instance
+from tengoku.deploy import git, get_all_instances, query_instance, local_deploy
 
 
 def start():
@@ -13,7 +13,8 @@ def start():
         "instance": {
             "all": get_all_instances,
             "git": git,
-            "id": query_instance
+            "id": query_instance,
+            "local": local_deploy
         }
     })
 

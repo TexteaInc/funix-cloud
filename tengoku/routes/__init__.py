@@ -12,3 +12,7 @@ INSTANCE_ACTIONS = {
     "all": "/instance/query/all",
     "delete": "/instance/delete",
 }
+
+FILE_ACTIONS = {
+    "upload": "/file/upload",
+}

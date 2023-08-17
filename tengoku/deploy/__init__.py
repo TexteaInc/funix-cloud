@@ -1,11 +1,13 @@
 import requests
 import rich
+import shutil
+import os
 from rich.table import Table
 from rich.console import Console
 from rich.markdown import Markdown
 
 from tengoku.config import read_key_from_config
-from tengoku.routes import INSTANCE_ACTIONS
+from tengoku.routes import INSTANCE_ACTIONS, FILE_ACTIONS
 
 console = Console()
 
@@ -45,8 +47,80 @@ STATUS_MAP = {
 }
 
 
-def local_deploy():
-    pass
+def local_deploy(
+    dev_folder: str,
+    name: str,
+    file: str = "main.py",
+    no_frontend: bool = False,
+    lazy: bool = False,
+    dir_mode: bool = False,
+    transform: bool = False,
+    app_secret: str | None = None,
+):
+    """
+    Deploy local folder to Funix Cloud.
+
+    Args:
+        dev_folder (str): The path to the dev folder.
+        name (str): The name of the instance.
+        file (str, optional): The entry file to run. Defaults to "main.py".
+        no_frontend (bool, optional): Whether to disable the frontend. Defaults to False.
+        lazy (bool, optional): Whether to use lazy mode. Defaults to False.
+        dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
+        transform (bool, optional): Whether to use transform mode. Defaults to False.
+        app_secret (str | None, optional): The app secret. Defaults to None.
+    """
+    server = read_key_from_config("server")
+    token = read_key_from_config("token")
+    if not token:
+        print("Please login first!")
+        return
+    if os.path.exists("deploy.zip"):
+        os.remove("deploy.zip")
+    if not os.path.exists(dev_folder):
+        print("Dev folder not found")
+        return
+    shutil.make_archive("deploy", "zip", dev_folder)
+    data = requests.post(
+        server + FILE_ACTIONS["upload"],
+        files={
+            "file": ("deploy.zip", open("deploy.zip", "rb"))
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    ).json()
+    if "code" in data and data["code"] != 200:
+        print(data["message"])
+        return
+    print("Successfully uploaded code!")
+    file_id = data["data"]["file_id"]
+    json_data = {
+        "file_id": file_id,
+        "name": name,
+        "entry_point": file,
+        "with_no_frontend": no_frontend,
+        "with_lazy": lazy,
+        "with_dir_mode": dir_mode,
+        "with_transform": transform,
+    }
+
+    if app_secret and isinstance(app_secret, str):
+        json_data["app_secret"] = app_secret
+
+    result = requests.post(
+        server + INSTANCE_ACTIONS["upload"],
+        json=json_data,
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    ).json()
+
+    if "code" in result and result["code"] == 200:
+        print("Successfully created deployment task!")
+    else:
+        print("Failed to deploy!")
+        rich.print(result)
 
 
 def git(
