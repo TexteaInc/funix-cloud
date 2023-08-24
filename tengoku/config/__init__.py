@@ -1,6 +1,6 @@
-from typing import TypedDict, Any
-import os
 import json
+import os
+from typing import Any, TypedDict
 
 
 class ConfigType(TypedDict):

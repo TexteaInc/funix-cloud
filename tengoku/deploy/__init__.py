@@ -1,13 +1,14 @@
+import os
+import zipfile
+
 import requests
 import rich
-import shutil
-import os
-from rich.table import Table
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.table import Table
 
 from tengoku.config import read_key_from_config
-from tengoku.routes import INSTANCE_ACTIONS, FILE_ACTIONS
+from tengoku.routes import FILE_ACTIONS, INSTANCE_ACTIONS
 
 console = Console()
 
@@ -47,6 +48,19 @@ STATUS_MAP = {
 }
 
 
+def zip_folder(path: str, zip_handler: zipfile.ZipFile):
+    for folder_name, subfolders, filenames in os.walk(path):
+        for filename in filenames:
+            if filename in ["deploy.zip", ".DS_Store", ".gitignore"]:
+                continue
+            if filename.endswith(".pyc"):
+                continue
+            if folder_name in ["__pycache__", ".git", ".ebextensions"]:
+                continue
+            file_path = os.path.join(folder_name, filename)
+            zip_handler.write(file_path, arcname=os.path.relpath(file_path, path))
+
+
 def local_deploy(
     dev_folder: str,
     name: str,
@@ -70,6 +84,7 @@ def local_deploy(
         transform (bool, optional): Whether to use transform mode. Defaults to False.
         app_secret (str | None, optional): The app secret. Defaults to None.
     """
+    abs_path = os.path.abspath(dev_folder)
     server = read_key_from_config("server")
     token = read_key_from_config("token")
     if not token:
@@ -77,18 +92,15 @@ def local_deploy(
         return
     if os.path.exists("deploy.zip"):
         os.remove("deploy.zip")
-    if not os.path.exists(dev_folder):
+    if not os.path.exists(abs_path):
         print("Dev folder not found")
         return
-    shutil.make_archive("deploy", "zip", dev_folder)
+    with zipfile.ZipFile("deploy.zip", "w", zipfile.ZIP_DEFLATED) as zip_handler:
+        zip_folder(abs_path, zip_handler)
     data = requests.post(
         server + FILE_ACTIONS["upload"],
-        files={
-            "file": ("deploy.zip", open("deploy.zip", "rb"))
-        },
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
+        files={"file": ("deploy.zip", open("deploy.zip", "rb"))},
+        headers={"Authorization": f"Bearer {token}"},
     ).json()
     if "code" in data and data["code"] != 200:
         print(data["message"])
@@ -111,9 +123,7 @@ def local_deploy(
     result = requests.post(
         server + INSTANCE_ACTIONS["upload"],
         json=json_data,
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
+        headers={"Authorization": f"Bearer {token}"},
     ).json()
 
     if "code" in result and result["code"] == 200:
@@ -167,9 +177,7 @@ def git(
     result = requests.post(
         read_key_from_config("server") + INSTANCE_ACTIONS["git"],
         json=json_data,
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
+        headers={"Authorization": f"Bearer {token}"},
     ).json()
 
     if "code" in result and result["code"] == 200:
@@ -192,7 +200,7 @@ def get_all_instances():
         read_key_from_config("server") + INSTANCE_ACTIONS["all"],
         headers={
             "Authorization": f"Bearer {token}",
-        }
+        },
     ).json()
 
     if "code" in result and result["code"] == 200:
@@ -207,7 +215,7 @@ def get_all_instances():
                 str(instance["id"]),
                 instance["name"],
                 instance["start_time"],
-                STATES_MAP[instance["state"]]
+                STATES_MAP[instance["state"]],
             )
         console.print(table)
     else:
@@ -225,12 +233,10 @@ def query_instance(instance: int):
         return
     result = requests.post(
         read_key_from_config("server") + INSTANCE_ACTIONS["query"],
-        json={
-            "id": instance
-        },
+        json={"id": instance},
         headers={
             "Authorization": f"Bearer {token}",
-        }
+        },
     ).json()
     if "code" in result and result["code"] == 200:
         name = result["data"]["name"]

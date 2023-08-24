@@ -13,7 +13,7 @@ def __login(username: str, password: str):
         json={
             "username": username,
             "password": password,
-        }
+        },
     ).json()
     return result
 
@@ -52,7 +52,7 @@ def register(
         json={
             "username": username,
             "password": password,
-        }
+        },
     ).json()
     if "code" in result and result["code"] == 200:
         print("Successfully registered!")
