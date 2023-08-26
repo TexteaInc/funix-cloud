@@ -3,8 +3,8 @@ import getpass
 import requests
 import rich
 
-from tengoku.config import read_key_from_config, write_key_to_config
-from tengoku.routes import USER_ACTIONS
+from funix_deploy.config import read_key_from_config, write_key_to_config
+from funix_deploy.routes import USER_ACTIONS
 
 
 def __login(username: str, password: str):

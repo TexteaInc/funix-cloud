@@ -1,7 +1,7 @@
 import fire
 
-from tengoku.deploy import get_all_instances, git, local_deploy, query_instance
-from tengoku.user import login, logout, register
+from funix_deploy.deploy import get_all_instances, git, local_deploy, query_instance
+from funix_deploy.user import login, logout, register
 
 
 def start():

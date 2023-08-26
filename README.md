@@ -1,4 +1,4 @@
-# Tengoku
+# Funix-Deploy
 
 > It's only in the development stage right now, and development may be behind Kumo (Funix-Cloud).
 
@@ -18,8 +18,8 @@ We'll probably release a simple limited test of Funix Cloud (probably invite-onl
 ### From GitHub
 
 ```bash
-git clone https://github.com/TexteaInc/tengoku
-cd tengoku
+git clone https://github.com/TexteaInc/funix-deploy
+cd funix-deploy
 pip install -e .
 ```
 
@@ -28,7 +28,7 @@ pip install -e .
 > In the future, we have.
 
 ```bash
-pip install tengoku
+pip install funix-deploy
 ```
 
 ## Usage
@@ -36,7 +36,7 @@ pip install tengoku
 ### In CLI
 
 ```bash
-tengoku --help
+funix-deploy --help
 ```
 
 ### In Web (by Funix Project)
@@ -44,5 +44,5 @@ tengoku --help
 > In the future, Funix now miss some features. Like default function page.
 
 ```bash
-tengoku web
+funix-deploy web
 ```

@@ -7,8 +7,8 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.table import Table
 
-from tengoku.config import read_key_from_config
-from tengoku.routes import FILE_ACTIONS, INSTANCE_ACTIONS
+from funix_deploy.config import read_key_from_config
+from funix_deploy.routes import FILE_ACTIONS, INSTANCE_ACTIONS
 
 console = Console()
 
