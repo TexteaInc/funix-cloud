@@ -15,7 +15,7 @@ DEFAULT_CONFIG: ConfigType = {
 
 CONFIG = {}
 LOADED = False
-CONFIG_PATH = os.path.expanduser("~/.config/tengoku/config.json")
+CONFIG_PATH = os.path.expanduser("~/.config/funix_deploy/config.json")
 
 
 def read_config_from_file():

@@ -9,6 +9,7 @@ from rich.table import Table
 
 from funix_deploy.config import read_key_from_config
 from funix_deploy.routes import FILE_ACTIONS, INSTANCE_ACTIONS
+from funix_deploy.user import req_me
 
 console = Console()
 
@@ -19,31 +20,34 @@ STATES_MAP = {
     103: "Uploading Code",
     104: "AWS EB Creating",
     200: "Success",
+    201: "Paused",
     400: "Failed",
 }
 
 STATUS_MAP = {
+    0: "Success",
     200: "Success",
-    400: "Git repo cannot clone",
-    401: "Found .ebextensions folder",
-    402: "Found .git folder",
-    403: "Cannot found requirements.txt",
-    404: "Cannot found funix",
-    405: "Your code or git repo is so large, 500MB is the limit",
-    406: "Cannot found entry point",
-    407: "Your string has some invalid characters",
-    408: "Argument is too long to handle",
-    409: "Require repo link",
-    410: "Require name",
-    411: "Require entry point",
-    412: "In close test, you only can deploy 10 instances",
-    413: "Duplicate name",
-    414: "Require file id",
-    415: "Instance not found",
-    416: "Require instance id",
-    417: "Users has no instances",
-    418: "No file is uploaded",
-    420: "File is cleaned",
+    103001: "Git repo cannot clone",
+    103002: "Found .ebextensions folder",
+    103003: "Found .git folder",
+    103004: "Cannot found requirements.txt",
+    103005: "Cannot found funix",
+    103006: "Your code or git repo is so large, 500MB is the limit",
+    103007: "Cannot found entry point",
+    103008: "Your string has some invalid characters",
+    103009: "Argument is too long to handle",
+    103010: "Require repo link",
+    103011: "Require name",
+    103012: "Require entry point",
+    103013: "In close test, you only can deploy 10 instances",
+    103014: "Duplicate name",
+    103015: "Require file id",
+    103016: "Instance not found",
+    103017: "Require instance id",
+    103018: "Users has no instances",
+    103019: "No file is uploaded",
+    103020: "File is cleaned",
+    103021: "Instance is not paused",
     500: "Internal Server Error",
 }
 
@@ -102,7 +106,7 @@ def local_deploy(
         files={"file": ("deploy.zip", open("deploy.zip", "rb"))},
         headers={"Authorization": f"Bearer {token}"},
     ).json()
-    if "code" in data and data["code"] != 200:
+    if "code" in data and data["code"] != 0:
         print(data["message"])
         return
     print("Successfully uploaded code!")
@@ -126,8 +130,10 @@ def local_deploy(
         headers={"Authorization": f"Bearer {token}"},
     ).json()
 
-    if "code" in result and result["code"] == 200:
-        print("Successfully created deployment task!")
+    if "code" in result and result["code"] == 0:
+        app_name = result["data"]["application_name"]
+        instance_id = result["data"]["instance_id"]
+        print(f"Successfully created deployment task!\nApp name: {app_name}\nInstance id: {instance_id}")
     else:
         print("Failed to deploy!")
         rich.print(result)
@@ -180,8 +186,10 @@ def git(
         headers={"Authorization": f"Bearer {token}"},
     ).json()
 
-    if "code" in result and result["code"] == 200:
-        print("Successfully created deployment task!")
+    if "code" in result and result["code"] == 0:
+        app_name = result["data"]["application_name"]
+        instance_id = result["data"]["instance_id"]
+        print(f"Successfully created deployment task!\nApp name: {app_name}\nInstance id: {instance_id}")
     else:
         print("Failed to deploy!")
         rich.print(result)
@@ -203,7 +211,7 @@ def get_all_instances():
         },
     ).json()
 
-    if "code" in result and result["code"] == 200:
+    if "code" in result and result["code"] == 0:
         table = Table(title="Instances Dashboard")
         table.add_column("ID")
         table.add_column("Name")
@@ -226,6 +234,9 @@ def get_all_instances():
 def query_instance(instance: int):
     """
     Query an instance in your account by id.
+
+    Args:
+        instance (int): The id of the instance.
     """
     token = read_key_from_config("token")
     if not token:
@@ -238,11 +249,12 @@ def query_instance(instance: int):
             "Authorization": f"Bearer {token}",
         },
     ).json()
-    if "code" in result and result["code"] == 200:
+    if "code" in result and result["code"] == 0:
         name = result["data"]["name"]
 
         start_time = result["data"]["start_time"]
-        finish_time = result["data"]["done_time"]
+        if "done_time" in result["data"]:
+            finish_time = result["data"]["done_time"]
 
         state = STATES_MAP[result["data"]["state"]]
         status = STATUS_MAP[result["data"]["status"]]
@@ -256,14 +268,17 @@ def query_instance(instance: int):
 
         if not url:
             url = "Not finished"
+        else:
+            url = f"https://funix.io/{req_me(token)['data']['username']}/{name}"
 
         console.rule(f"Instance Info : {name} ({instance})")
         markdown = ""
         markdown += f"""- **Created Time**: {start_time}\n"""
-        markdown += f"""- **Finished Time**: {finish_time}\n"""
+        if finish_time:
+            markdown += f"""- **Finished Time**: {finish_time}\n"""
         markdown += f"""- **State**: {state}\n"""
         markdown += f"""- **Status**: {status}\n"""
-        markdown += f"""- **Deployer Message**: {message}\n"""
+        markdown += f"""- **Deploy Message**: {message}\n"""
         markdown += f"""- **URL Point**: {url}\n"""
         markdown = Markdown(markdown)
         console.print(markdown)
