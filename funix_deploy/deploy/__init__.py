@@ -204,7 +204,7 @@ def get_all_instances():
         print("Please login first!")
         return
 
-    result = requests.get(
+    result = requests.post(
         read_key_from_config("server") + INSTANCE_ACTIONS["all"],
         headers={
             "Authorization": f"Bearer {token}",

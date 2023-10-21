@@ -37,7 +37,7 @@ def __bind(email: str, token: str):
 
 
 def req_me(token: str):
-    result = requests.get(
+    result = requests.post(
         read_key_from_config("server") + USER_ACTIONS["me"],
         headers={
             "Authorization": f"Bearer {token}",
