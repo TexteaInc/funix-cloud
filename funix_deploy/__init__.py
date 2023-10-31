@@ -18,7 +18,7 @@ def start():
                 "ticket": ticket,
             },
             "instance": {
-                "all": get_all_instances,
+                "list": get_all_instances,
                 "git": git,
                 "id": query_instance,
                 "local": local_deploy,
