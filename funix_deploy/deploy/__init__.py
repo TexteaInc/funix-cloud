@@ -11,7 +11,14 @@ from funix_deploy.config import read_key_from_config
 from funix_deploy.routes import FILE_ACTIONS, INSTANCE_ACTIONS
 from funix_deploy.user import req_me
 
+from typing import TypedDict, Literal
+
 console = Console()
+
+class RateLimter(TypedDict):
+    max_calls: int
+    period: int
+    source: Literal["browser", "ip"]
 
 STATES_MAP = {
     100: "Task Created",
@@ -74,6 +81,8 @@ def local_deploy(
     dir_mode: bool = False,
     transform: bool = False,
     app_secret: str | None = None,
+    rate_limiters: list[RateLimter] = [],
+    env: dict[str, str] = {},
 ):
     """
     Deploy local folder to Funix Cloud.
@@ -87,6 +96,8 @@ def local_deploy(
         dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
         transform (bool, optional): Whether to use transform mode. Defaults to False.
         app_secret (str | None, optional): The app secret. Defaults to None.
+        rate_limiters (list[RateLimter], optional): The rate limters. Defaults to [].
+        env (dict[str, str], optional): The environment variables. Defaults to [].
     """
     abs_path = os.path.abspath(dev_folder)
     server = read_key_from_config("server")
@@ -124,6 +135,12 @@ def local_deploy(
     if app_secret and isinstance(app_secret, str):
         json_data["app_secret"] = app_secret
 
+    if rate_limiters and isinstance(rate_limiters, list):
+        json_data["rate_limiters"] = rate_limiters
+
+    if env and isinstance(env, dict):
+        json_data["envs"] = env
+
     result = requests.post(
         server + INSTANCE_ACTIONS["upload"],
         json=json_data,
@@ -148,6 +165,8 @@ def git(
     dir_mode: bool = False,
     transform: bool = False,
     app_secret: str | None = None,
+    rate_limiters: list[RateLimter] = [],
+    env: dict[str, str] = {},
 ):
     """
     Deploy git repository to Funix Cloud.
@@ -161,6 +180,8 @@ def git(
         dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
         transform (bool, optional): Whether to use transform mode. Defaults to False.
         app_secret (str | None, optional): The app secret. Defaults to None.
+        rate_limiters (list[RateLimter], optional): The rate limters. Defaults to [].
+        env (dict[str, str], optional): The environment variables. Defaults to [].
     """
     token = read_key_from_config("token")
     if not token:
@@ -179,6 +200,12 @@ def git(
 
     if app_secret and isinstance(app_secret, str):
         json_data["app_secret"] = app_secret
+
+    if rate_limiters and isinstance(rate_limiters, list):
+        json_data["rate_limiters"] = rate_limiters
+
+    if env and isinstance(env, dict):
+        json_data["envs"] = env
 
     result = requests.post(
         read_key_from_config("server") + INSTANCE_ACTIONS["git"],
