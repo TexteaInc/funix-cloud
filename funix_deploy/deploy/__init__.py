@@ -96,8 +96,8 @@ def local_deploy(
         dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
         transform (bool, optional): Whether to use transform mode. Defaults to False.
         app_secret (str | None, optional): The app secret. Defaults to None.
-        rate_limiters (list[RateLimter], optional): The rate limters. Defaults to [].
-        env (dict[str, str], optional): The environment variables. Defaults to [].
+        rate_limiters (list[RateLimter], optional): The rate limters. Defaults to []. Example: "[{'max_calls': 10, 'period': 60, 'source': 'browser'}]"
+        env (dict[str, str], optional): The environment variables. Defaults to []. Example: "{'key': 'value'}"
     """
     abs_path = os.path.abspath(dev_folder)
     server = read_key_from_config("server")
@@ -180,8 +180,8 @@ def git(
         dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
         transform (bool, optional): Whether to use transform mode. Defaults to False.
         app_secret (str | None, optional): The app secret. Defaults to None.
-        rate_limiters (list[RateLimter], optional): The rate limters. Defaults to [].
-        env (dict[str, str], optional): The environment variables. Defaults to [].
+        rate_limiters (list[RateLimter], optional): The rate limters. Defaults to []. Example: "[{'max_calls': 10, 'period': 60, 'source': 'browser'}]"
+        env (dict[str, str], optional): The environment variables. Defaults to []. Example: "{'key': 'value'}"
     """
     token = read_key_from_config("token")
     if not token:
