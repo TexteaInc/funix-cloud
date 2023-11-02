@@ -1,48 +1,51 @@
 import json
 import os
-from typing import Any, TypedDict
+from dataclasses import dataclass
+from typing import Any
 
 
-class ConfigType(TypedDict):
+@dataclass
+class ConfigDict:
     token: str | None
-    server: str
+    api_server: str
+    config_path: str
 
+    def __init__(self, config_path: str):
+        self.config_path = config_path
+        self.read_config()
 
-DEFAULT_CONFIG: ConfigType = {
-    "token": None,
-    "server": "https://cloud-dev.funix.io",
-}
+    def default(self):
+        self.token = None
+        self.api_server = "https://cloud-dev.funix.io"
 
-CONFIG = {}
-LOADED = False
-CONFIG_PATH = os.path.expanduser("~/.config/funix_deploy/config.json")
+    def to_dict(self):
+        return {"token": self.token, "api_server": self.api_server}
 
+    def from_dict(self, data):
+        self.token = data["token"]
+        self.api_server = data["api_server"]
 
-def read_config_from_file():
-    global CONFIG, LOADED
-    if not os.path.exists(CONFIG_PATH):
-        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-        with open(CONFIG_PATH, "w") as f:
-            f.write(json.dumps(DEFAULT_CONFIG))
-        CONFIG = DEFAULT_CONFIG
-        LOADED = True
-    else:
-        with open(CONFIG_PATH, "r") as f:
-            CONFIG = json.loads(f.read())
-        LOADED = True
+    def read_config(self):
+        if not os.path.exists(self.config_path):
+            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+            self.default()
+            with open(self.config_path, "w") as f:
+                json.dump(self.to_dict(), f)
+        else:
+            with open(self.config_path, "r") as f:
+                data = json.load(f)
+                self.from_dict(data)
 
+    def get(self, key: str, default: Any | None) -> Any | None:
+        if hasattr(self, key):
+            return getattr(self, key)
+        else:
+            return default
 
-def read_key_from_config(key: str):
-    global LOADED
-    if not LOADED:
-        read_config_from_file()
-    return CONFIG.get(key, None)
-
-
-def write_key_to_config(key: str, value: Any):
-    global CONFIG, LOADED
-    if not LOADED:
-        read_config_from_file()
-    CONFIG[key] = value
-    with open(CONFIG_PATH, "w") as f:
-        f.write(json.dumps(CONFIG))
+    def set(self, key: str, value: Any | None):
+        if hasattr(self, key):
+            setattr(self, key, value)
+        else:
+            raise KeyError(f"Key {key} does not exist in config.")
+        with open(self.config_path, "w") as f:
+            json.dump(self.to_dict(), f)

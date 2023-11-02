@@ -39,10 +39,6 @@ pip install funix-deploy
 funix-deploy --help
 ```
 
-We have two subcommands: `user` and `instance`.
-
-You can use `funix-deploy user --help` and `funix-deploy instance --help` to see more information.
-
 ### In Web (by Funix Project)
 
 > In the future, Funix now miss some features. Like default function page.
