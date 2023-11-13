@@ -14,9 +14,10 @@ def start():
 
 
 if __name__ == "__main__":
-    console.print(
-        Markdown(
-            "Cannot run this file directly. Please use the command `funix-deploy` instead."
-        )
-    )
-    sys.exit(1)
+    # console.print(
+    #     Markdown(
+    #         "Cannot run this file directly. Please use the command `funix-deploy` instead."
+    #     )
+    # )
+    # sys.exit(1)
+    start()
