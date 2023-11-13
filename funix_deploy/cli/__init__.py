@@ -1,16 +1,16 @@
-import io
 import json
 import os
+import sys
 from getpass import getpass
 from typing import Optional
 
 from qrcode import QRCode
-from rich.console import Console
+from rich.console import Console, console
 from rich.markdown import Markdown
 
 from funix_deploy.api import API, print_markdown_from_full_error_server_response
 from funix_deploy.config import ConfigDict
-
+from funix_deploy.util import is_git_url
 
 maps = {
     "register": "register",
@@ -87,6 +87,23 @@ class DeployCLI:
             return
 
         self.email(email)
+
+    def deploy(self, url_or_path: str):
+        """
+        Deploy instance
+        """
+        if is_git_url(url_or_path):
+            git = url_or_path
+        elif os.path.exists(url_or_path):
+            path = url_or_path
+            pass
+        else:
+            console.print(
+                Markdown(
+                    f"Unexpected `{url_or_path}`, expected a URL or a local path."
+                )
+            )
+            sys.exit(1)
 
     def login(self, username: str):
         """
