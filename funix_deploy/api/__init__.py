@@ -155,6 +155,71 @@ def print_markdown_from_full_error_server_response(
             )
         case ErrorCodes.AlreadyHas2FA:
             print_markdown("You have already has 2fa, don't need to bind again.")
+        case ErrorCodes.CannotCloneGitRepo:
+            print_markdown(
+                "Funix cloud cannot clone your git repo. Please check your repo url, if it's private, "
+                "please make it public or upload it in zip file."
+            )
+        case ErrorCodes.SpecialFoldersNotAllowed:
+            print_markdown(
+                "Please delete `.ebextensions` and `.platform` in your project."
+            )
+        case ErrorCodes.GitFolderNotAllowed:
+            print_markdown("Please delete `.git` folder in your project.")
+        case ErrorCodes.RequirementsTxtNotFound:
+            print_markdown(
+                "You need `requirements.txt` in your project, if you don't have, "
+                "please create one, make sure it contains `funix`."
+            )
+        case ErrorCodes.NoFunixInRequirementsTxt:
+            print_markdown(
+                "You need `funix` in your `requirements.txt`, please add it."
+            )
+        case ErrorCodes.FileTooLarge:
+            print_markdown(
+                "File too large. Please make sure your file is less than 200MB. If you need to upload a larger file, "
+                "you can use AWS or Google Cloud, or contact support@funix.io."
+            )
+        case ErrorCodes.FileNotFound:
+            print_markdown(
+                "Your python main file is not found. Please make sure your file exists and you have the correct path."
+            )
+        case ErrorCodes.IllegalString:
+            print_markdown(
+                "Your argument contains illegal characters, remove: ()[]<>:\"'/\\|?*"
+            )
+        case ErrorCodes.ArgumentTooLong:
+            print_markdown(
+                "Your argument is too long, more than 128 characters. Please shorten it."
+            )
+        case ErrorCodes.InstancesTooMany:
+            print_markdown(
+                "You already have 10 instances in your account, if you need more, please contact support@funix.io"
+            )
+        case ErrorCodes.DuplicationName:
+            print_markdown(
+                "You have already used this app name, please think more and use another one."
+            )
+        case ErrorCodes.InstanceNotFound:
+            print_markdown("Instance not found, please check your instance id.")
+        case ErrorCodes.UserHasNoInstance:
+            print_markdown("You have no instance, but you can create one if you want.")
+        case ErrorCodes.InstanceNotPrepared:
+            print_markdown(
+                "Please wait for the instance to be prepared, try again later. "
+                "If your instance is still not ready after a long time, please contact support@funix.io"
+            )
+        case ErrorCodes.BodyNoMultiPart:
+            print_markdown(
+                "It seems like you didn't upload any files, please check your request."
+            )
+        case ErrorCodes.FileIsCleaned:
+            print_markdown(
+                "The file could not be found or was removed because of the 30-minute temporary file limit. "
+                "Please check your fid and upload again if it was removed due to a timeout."
+            )
+        case ErrorCodes.InstanceNotPaused:
+            print_markdown("Your instance is not paused, you cannot restore it.")
         case _:
             return
 
