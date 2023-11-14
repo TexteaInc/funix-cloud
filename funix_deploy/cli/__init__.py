@@ -1,14 +1,17 @@
 import json
 import os
-import sys
+import tempfile
+import zipfile
 from getpass import getpass
-from typing import Optional
+from pathlib import Path
+from typing import Optional, TypedDict, Literal
 
+import requests
 from qrcode import QRCode
 from rich.console import Console
 from rich.markdown import Markdown
 
-from funix_deploy.api import API, print_from_resp
+from funix_deploy.api import API, print_from_resp, Routes, ServerResponse
 from funix_deploy.config import ConfigDict
 from funix_deploy.util import is_git_url
 
@@ -21,7 +24,16 @@ maps = {
     "2fa": "two_fa",
     "change-password": "change_password",
     "forget-password": "forget_password",
+    "deploy": "deploy",
+    "delete": "delete",
+    "remove": "delete",
 }
+
+
+class RateLimiter(TypedDict):
+    max_calls: int
+    period: int
+    source: Literal["browser", "ip"]
 
 
 class DeployCLI:
@@ -60,6 +72,13 @@ class DeployCLI:
     def __print_markdown(self, data: str):
         self.__console.print(Markdown(data))
 
+    def __upload(self, path) -> Optional[str]:
+        resp: ServerResponse = self.__api.upload(path, self.__token)
+        if resp["code"] != 0:
+            print_from_resp(self.__console, resp)
+            return
+        return resp["data"]["file_id"]
+
     def register(self, username: str, email: Optional[str] = None):
         """
         Register a new account on the Funix Cloud.
@@ -89,22 +108,145 @@ class DeployCLI:
         if email:
             self.email(email)
 
-    def deploy(self, url_or_path: str):
+    def deploy(
+            self,
+            url_or_path: str,
+            instance_name: str,
+            file: str = "main.py",
+            no_frontend: bool = False,
+            lazy: bool = False,
+            dir_mode: bool = False,
+            transform: bool = False,
+            app_secret: str | None = None,
+            rate_limiters: list[RateLimiter] = [],
+            env: dict[str, str] = {},
+    ):
         """
-        Deploy instance
+        Deploy local folder to Funix Cloud.
+
+        Args:
+            url_or_path (str): Git URL or local python path.
+            instance_name (str): The name of new instance
+            file (str, optional): The entry file to run. Defaults to "main.py".
+            no_frontend (bool, optional): Whether to disable the frontend. Defaults to False.
+            lazy (bool, optional): Whether to use lazy mode. Defaults to False.
+            dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
+            transform (bool, optional): Whether to use transform mode. Defaults to False.
+            app_secret (str | None, optional): The app secret. Defaults to None.
+            rate_limiters (list[RateLimiter], optional): The rate limiters. Defaults to [].
+                Example: "[{'max_calls': 10, 'period': 60, 'source': 'browser'}]"
+            env (dict[str, str], optional): The environment variables. Defaults to []. Example: "{'key': 'value'}"
         """
+
+        req_json = {}
+
         if is_git_url(url_or_path):
+            url = self.__api.base_url + Routes.deploy_git
             git = url_or_path
+            req_json["repo_link"] = git
+
         elif os.path.exists(url_or_path):
-            path = url_or_path
-            pass
+            url = self.__api.base_url + Routes.deploy_zip
+            path: Path = Path(url_or_path)
+
+            if not os.path.isfile(url_or_path):
+                self.__print_markdown(
+                    f"File `{url_or_path}` is not a file... Currently, directory is not supported yet.")
+                return
+
+            with open(path, "rb") as f:
+                head: bytes = f.read(4)
+                is_zip = head == b"PK\x03\x04" or head == b"PK\x05\x06" or head == b"PK\x07\x08"
+
+            if is_zip:
+                file_id = self.__upload(path.name)
+                if file_id is None:
+                    return
+            elif path.suffix == ".py":
+                requirements_path = path.parent.joinpath("requirements.txt")
+                if not requirements_path.exists():
+                    self.__print_markdown(
+                        f"File `{requirements_path}` is not found... A `requirements.txt` is required for deployment.")
+                    return
+
+                with tempfile.NamedTemporaryFile(prefix="funix-deploy-", suffix=".zip") as tmp:
+                    print("Compressing deployment zip...")
+                    with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
+                        archive.writestr("main.py", path.read_text())
+                        archive.writestr("requirements.txt", requirements_path.read_text())
+                    print("Uploading deployment zip...")
+                    file_id = self.__upload(tmp.name)
+                    if file_id is None:
+                        return
+
+            else:
+                self.__print_markdown(f"File `{url_or_path}` is not a zip or a python file.")
+                return
+
+            if file_id is None:
+                self.__print_markdown(
+                    "Illegal state, something wrong, file_id is None, please contact developer to fix this.")
+                return
+
+            req_json["file_id"] = file_id
+
         else:
-            console.print(
-                Markdown(
-                    f"Unexpected `{url_or_path}`, expected a URL or a local path."
-                )
-            )
-            sys.exit(1)
+            self.__print_markdown(f"Unexpected `{url_or_path}`, expected a URL or a local path.")
+            return
+
+        req_json.update({
+            "name": instance_name,
+            "entry_point": file,
+            "with_no_frontend": no_frontend,
+            "with_lazy": lazy,
+            "with_dir_mode": dir_mode,
+            "with_transform": transform,
+        })
+
+        if app_secret and isinstance(app_secret, str):
+            req_json["app_secret"] = app_secret
+
+        if rate_limiters and isinstance(rate_limiters, list):
+            req_json["rate_limiters"] = rate_limiters
+
+        if env and isinstance(env, dict):
+            req_json["envs"] = env
+
+        r = requests.post(
+            url,
+            json=req_json,
+            headers={"Authorization": f"Bearer {self.__token}"},
+        )
+
+        result: ServerResponse = r.json()
+
+        if result["code"] != 0:
+            print("Failed to deploy!")
+            print_from_resp(self.__console, result)
+            return
+
+        app_name = result["data"]["application_name"]
+        instance_id = result["data"]["instance_id"]
+        self.__print_markdown(
+            "Successfully created deployment task!\n"
+            f"- App name: {app_name}\n"
+            f"- Instance id: {instance_id}\n"
+        )
+
+    def delete(self, instance_id: int):
+        """
+        Delete an instance from Funix Cloud
+
+        Args:
+            instance_id(int): Instance id
+        """
+
+        result: ServerResponse = self.__api.remove_instance(instance_id, self.__token)
+        if result["code"] != 0:
+            print_from_resp(self.__console, result)
+            return
+
+        self.__print_markdown(f"Successfully removed instance `{instance_id}`!")
 
     def login(self, username: str):
         """
@@ -140,6 +282,10 @@ class DeployCLI:
         """
         if not self.__token:
             self.__console.print("Please login first.")
+            return
+
+        if "@" not in email:
+            self.__print_markdown("Your email does not seem correct, please check and try again.")
             return
 
         result = self.__api.bind_email(self.__token, email)
