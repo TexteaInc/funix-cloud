@@ -68,7 +68,9 @@ def print_markdown_from_full_error_server_response(
     def print_markdown(data: str):
         console.print(Markdown(data))
 
-    match ErrorCodes(response["code"]):
+    code=ErrorCodes(response["code"])
+
+    match code:
         case ErrorCodes.Success:
             return
         case ErrorCodes.ServerError:
@@ -221,6 +223,7 @@ def print_markdown_from_full_error_server_response(
         case ErrorCodes.InstanceNotPaused:
             print_markdown("Your instance is not paused, you cannot restore it.")
         case _:
+            print_markdown(f"Unknown error code `{code}`.")
             return
 
 
