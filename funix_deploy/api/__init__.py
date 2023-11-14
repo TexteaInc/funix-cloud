@@ -111,10 +111,10 @@ def print_from_resp(
             print_markdown(
                 "Invalid password. Password length should be 8-64, "
                 "and it should contain at least two of following: \n"
-                "- Uppercase letters"
-                "- Lowercase letters"
-                "- Numbers"
-                "- Special characters"
+                "- Uppercase letters\n"
+                "- Lowercase letters\n"
+                "- Numbers\n"
+                "- Special characters\n"
             )
         case ErrorCodes.SamePassword:
             print_markdown(
