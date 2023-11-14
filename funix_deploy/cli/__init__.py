@@ -86,7 +86,8 @@ class DeployCLI:
             print_from_resp(self.__console, result)
             return
 
-        self.email(email)
+        if email:
+            self.email(email)
 
     def deploy(self, url_or_path: str):
         """
