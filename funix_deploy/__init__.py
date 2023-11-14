@@ -10,7 +10,16 @@ console = Console()
 
 
 def start():
-    fire.Fire(DeployCLI)
+    try:
+        fire.Fire(DeployCLI)
+    except KeyboardInterrupt:
+        print()
+        print("^C")
+        sys.exit(1)
+    except EOFError:
+        print()
+        print("^D")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
