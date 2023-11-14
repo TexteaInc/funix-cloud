@@ -8,7 +8,7 @@ from qrcode import QRCode
 from rich.console import Console, console
 from rich.markdown import Markdown
 
-from funix_deploy.api import API, print_markdown_from_full_error_server_response
+from funix_deploy.api import API, print_from_resp
 from funix_deploy.config import ConfigDict
 from funix_deploy.util import is_git_url
 
@@ -83,7 +83,7 @@ class DeployCLI:
             self.__token = token
             self.__console.print("Login successful! Your token is saved.")
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
             return
 
         self.email(email)
@@ -120,7 +120,7 @@ class DeployCLI:
             self.__config.set("token", result["data"]["token"])
             self.__console.print("Login successful! Your token is saved.")
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
 
     def logout(self):
         """
@@ -148,7 +148,7 @@ class DeployCLI:
                 f"Your email `{email}` will receive a verification link, please check your inbox."
             )
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
 
     def me(self):
         """
@@ -177,7 +177,7 @@ class DeployCLI:
                 list_str += "- 2FA: Not bound"
             self.__print_markdown(list_str)
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
 
     def two_fa(self):
         """
@@ -190,7 +190,7 @@ class DeployCLI:
         generate_result = self.__api.two_fa_request(self.__token)
 
         if generate_result["code"] != 0:
-            print_markdown_from_full_error_server_response(
+            print_from_resp(
                 self.__console, generate_result
             )
             return
@@ -214,7 +214,7 @@ class DeployCLI:
         if result["code"] == 0:
             self.__print_markdown(f"2FA bind successful!")
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
 
     def change_password(self):
         """
@@ -243,7 +243,7 @@ class DeployCLI:
             )
             self.logout()
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
 
     def forget_password(self, username: str, email: str):
         """
@@ -258,7 +258,7 @@ class DeployCLI:
         if result["code"] == 0:
             self.__print_markdown(f"Please check your email `{email}` for code.")
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)
 
         ticket = result["data"]["ticket"]
         code = int(input("Please input the code from your email: "))
@@ -273,4 +273,4 @@ class DeployCLI:
         if result["code"] == 0:
             self.__print_markdown(f"Password reset successful!")
         else:
-            print_markdown_from_full_error_server_response(self.__console, result)
+            print_from_resp(self.__console, result)

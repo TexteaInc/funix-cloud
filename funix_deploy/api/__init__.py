@@ -52,7 +52,7 @@ class ErrorCodes(Enum):
     InstanceNotPaused = 103022
 
 
-def print_markdown_from_full_error_server_response(
+def print_from_resp(
     console: Console,
     response: ServerResponse,
 ):
