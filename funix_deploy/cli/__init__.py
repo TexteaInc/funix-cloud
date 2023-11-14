@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import tempfile
@@ -6,12 +7,16 @@ from getpass import getpass
 from pathlib import Path
 from typing import Optional, TypedDict, Literal
 
+import dateutil
 import requests
+from dateutil import parser
 from qrcode import QRCode
 from rich.console import Console
 from rich.markdown import Markdown
+from tzlocal import get_localzone
 
-from funix_deploy.api import API, print_from_resp, Routes, ServerResponse
+from funix_deploy.api import API, print_from_resp, Routes, ServerResponse, instance_stage_from_int, print_from_err, \
+    ErrorCodes
 from funix_deploy.config import ConfigDict
 from funix_deploy.util import is_git_url, is_zip, zip_folder
 
@@ -27,6 +32,7 @@ maps = {
     "deploy": "deploy",
     "delete": "delete",
     "remove": "delete",
+    "query": "query",
 }
 
 
@@ -224,6 +230,42 @@ class DeployCLI:
             f"- App name: {app_name}\n"
             f"- Instance id: {instance_id}\n"
         )
+
+    def query(self, instance_id: int):
+        """
+        Query an instance from Funix Cloud
+
+        Args:
+            instance_id(int): Instance id
+        """
+        info: ServerResponse = self.__api.query_instance(instance_id, self.__token)
+        if info["code"] != 0:
+            print_from_resp(self.__console, info)
+            return
+
+        me = self.__api.me(self.__token)
+        if me["code"] != 0:
+            return
+
+        me_name = me["data"]["username"]
+        data = info["data"]
+        self.__print_json(data)
+        url1 = f"{data["name"]}-{me_name}.funix.io"
+        url2 = f"funix.io/{me_name}/{data["name"]}"
+        parsed_time: datetime = dateutil.parser.isoparse(data["done_time"])
+        zone = get_localzone()
+        time = parsed_time.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")
+        self.__print_markdown(
+            f"- Name: {data["name"]}\n"
+            f"- ID: {data["id"]}\n"
+            f"- Domain: [{url1}]({url1}) or [{url2}]({url2})\n"
+            f"- Status: {instance_stage_from_int(data["state"])}\n"
+            f"- Time: {time} {zone.key}\n"
+            f"- Error Code: {data["status"]}"
+        )
+        error = data["status"]
+        if error and error != 0:
+            print_from_err(self.__console, ErrorCodes(error))
 
     def delete(self, instance_id: int):
         """
