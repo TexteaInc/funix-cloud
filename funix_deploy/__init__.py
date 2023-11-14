@@ -12,13 +12,9 @@ console = Console()
 def start():
     try:
         fire.Fire(DeployCLI)
-    except KeyboardInterrupt:
+    except (EOFError, KeyboardInterrupt):
         print()
-        print("^C")
-        sys.exit(1)
-    except EOFError:
-        print()
-        print("^D")
+        print("Exiting..")
         sys.exit(1)
 
 

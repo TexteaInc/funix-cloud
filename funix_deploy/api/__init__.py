@@ -201,7 +201,7 @@ def print_from_resp(
             )
         case ErrorCodes.DuplicationName:
             print_markdown(
-                "You have already used this app name, please think more and use another one."
+                "You have already used this app name, you can delete the previous instance or use another one."
             )
         case ErrorCodes.InstanceNotFound:
             print_markdown("Instance not found, please check your instance id.")

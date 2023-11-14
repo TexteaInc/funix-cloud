@@ -13,7 +13,7 @@ from rich.markdown import Markdown
 
 from funix_deploy.api import API, print_from_resp, Routes, ServerResponse
 from funix_deploy.config import ConfigDict
-from funix_deploy.util import is_git_url
+from funix_deploy.util import is_git_url, is_zip, zip_folder
 
 maps = {
     "register": "register",
@@ -114,12 +114,10 @@ class DeployCLI:
             instance_name: str,
             file: str = "main.py",
             no_frontend: bool = False,
-            lazy: bool = False,
-            dir_mode: bool = False,
             transform: bool = False,
             app_secret: str | None = None,
-            rate_limiters: list[RateLimiter] = [],
-            env: dict[str, str] = {},
+            rate_limiters: list[RateLimiter] | None = None,
+            env: dict[str, str] | None = None,
     ):
         """
         Deploy local folder to Funix Cloud.
@@ -129,8 +127,6 @@ class DeployCLI:
             instance_name (str): The name of new instance
             file (str, optional): The entry file to run. Defaults to "main.py".
             no_frontend (bool, optional): Whether to disable the frontend. Defaults to False.
-            lazy (bool, optional): Whether to use lazy mode. Defaults to False.
-            dir_mode (bool, optional): Whether to use directory mode. Defaults to False.
             transform (bool, optional): Whether to use transform mode. Defaults to False.
             app_secret (str | None, optional): The app secret. Defaults to None.
             rate_limiters (list[RateLimiter], optional): The rate limiters. Defaults to [].
@@ -149,20 +145,13 @@ class DeployCLI:
             url = self.__api.base_url + Routes.deploy_zip
             path: Path = Path(url_or_path)
 
-            if not os.path.isfile(url_or_path):
-                self.__print_markdown(
-                    f"File `{url_or_path}` is not a file... Currently, directory is not supported yet.")
-                return
+            is_file = os.path.isfile(url_or_path)
+            is_zipfile = is_zip(path) if is_file else False
 
-            with open(path, "rb") as f:
-                head: bytes = f.read(4)
-                is_zip = head == b"PK\x03\x04" or head == b"PK\x05\x06" or head == b"PK\x07\x08"
-
-            if is_zip:
+            if is_zipfile:
                 file_id = self.__upload(path.name)
-                if file_id is None:
-                    return
-            elif path.suffix == ".py":
+
+            elif is_file and path.suffix == ".py":
                 requirements_path = path.parent.joinpath("requirements.txt")
                 if not requirements_path.exists():
                     self.__print_markdown(
@@ -176,16 +165,21 @@ class DeployCLI:
                         archive.writestr("requirements.txt", requirements_path.read_text())
                     print("Uploading deployment zip...")
                     file_id = self.__upload(tmp.name)
-                    if file_id is None:
-                        return
+
+            elif os.path.isdir(path):
+                with tempfile.NamedTemporaryFile(prefix="funix-deploy-", suffix=".zip") as tmp:
+                    print("Compressing deployment zip...")
+                    with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
+                        zip_folder(path.absolute(), archive)
+                    print("Uploading deployment zip...")
+                    file_id = self.__upload(tmp.name)
 
             else:
                 self.__print_markdown(f"File `{url_or_path}` is not a zip or a python file.")
                 return
 
             if file_id is None:
-                self.__print_markdown(
-                    "Illegal state, something wrong, file_id is None, please contact developer to fix this.")
+                self.__print_markdown("Failed to upload deploy code")
                 return
 
             req_json["file_id"] = file_id
@@ -198,8 +192,6 @@ class DeployCLI:
             "name": instance_name,
             "entry_point": file,
             "with_no_frontend": no_frontend,
-            "with_lazy": lazy,
-            "with_dir_mode": dir_mode,
             "with_transform": transform,
         })
 
