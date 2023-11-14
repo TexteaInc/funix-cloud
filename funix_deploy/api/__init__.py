@@ -52,64 +52,100 @@ class ErrorCodes(Enum):
     InstanceNotPaused = 103022
 
 
+def instance_stage_from_int(code: int):
+    match code:
+        case 100:
+            return "Start"
+        case 101:
+            return "Preprocess"
+        case 102:
+            return "Prepare"
+        case 103:
+            return "Upload"
+        case 104:
+            return "Deploying"
+        case 200:
+            return "Success"
+        case 201:
+            return "Paused"
+        case 400:
+            return "Failed"
+        case _:
+            return f"Unknown {code}"
+
+
+def __print_json(console: Console, data: dict | None):
+    if data is None:
+        return
+
+    console.print_json(
+        json.dumps(data, ensure_ascii=False),
+        indent=2,
+        highlight=True,
+        sort_keys=True,
+        ensure_ascii=False,
+    )
+
+
+def __print_markdown(console, data: str):
+    console.print(Markdown(data))
+
+
 def print_from_resp(
         console: Console,
         response: ServerResponse,
 ):
-    def print_json(data: dict):
-        console.print_json(
-            json.dumps(data, ensure_ascii=False),
-            indent=2,
-            highlight=True,
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-
-    def print_markdown(data: str):
-        console.print(Markdown(data))
-
     code = ErrorCodes(response["code"])
+    print_from_err(console, code, response)
 
+
+def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None):
     match code:
         case ErrorCodes.Success:
             return
         case ErrorCodes.ServerError:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Oops! The funix cloud server seems having some problems now, your request cannot be processed. "
                 "Here is the raw response if you want to report a new issue:\n----\n"
             )
-            print_json(response)
+            __print_json(console, data)
         case ErrorCodes.DatabaseError:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Database error. Please read the raw message below and check if your actions are correct. "
                 "If you are sure your actions are correct, please report a new issue.\n----\n"
             )
-            print_json(response)
+            __print_json(console, data)
         case ErrorCodes.InvalidArguments:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Invalid arguments. Please check your arguments. "
                 "If everything is correct with your arguments, "
                 "it could be a problem caused by kumo or funix-deploy not being updated in time, "
                 "you can either report a new issue or wait for an update."
             )
-            print_markdown("\n----\n")
-            print_json(response)
+            __print_markdown(console, "\n----\n")
+            __print_json(console, data)
         case ErrorCodes.NoAccessPermission:
-            print_markdown(
+            __print_markdown(
+                console,
                 "No access permission. You may need to log in, "
                 "or you may have accidentally entered an incorrect user/instance ID or "
                 "you may be planning a theft of some rainwater from our cloud servers. "
                 "Below is the raw message, "
                 "if everything is fine but the error just happens, please report a new issue.\n----\n"
             )
-            print_json(response)
+            __print_json(console, data)
         case ErrorCodes.InvalidUsername:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Invalid username. Username length should be 5-50, and only contains letters, numbers, "
                 "underscores and hyphens."
             )
         case ErrorCodes.InvalidPassword:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Invalid password. Password length should be 8-64, "
                 "and it should contain at least two of following: \n"
                 "- Uppercase letters\n"
@@ -118,113 +154,134 @@ def print_from_resp(
                 "- Special characters\n"
             )
         case ErrorCodes.SamePassword:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Same password. The password cannot be the same as the one you are currently using. "
                 "Maybe it reminds you of your password, haha."
             )
         case ErrorCodes.UsernameAlreadyExists:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Someone else has the same idea as you. Your username is taken. But don't worry, "
                 "Think a little bit, you can always come up with a better username."
             )
         case ErrorCodes.IncorrectPassword:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Incorrect password. You may have entered the wrong password, if you don't remember your password, "
                 "Use `funix-deploy reset-password` to reset your password."
             )
         case ErrorCodes.MismatchedEmail:
-            print_markdown(
+            __print_markdown(
+                console,
                 "You have entered the wrong email address, think about your email again, "
                 "if you can't find it please contact support@funix.io"
             )
         case ErrorCodes.EmailSendTooFrequently:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Take your time. You're really going too fast. Take a break. If you don't get the email, "
                 "contact support@funix.io"
             )
-            print_json(response)
+            __print_json(console, data)
         case ErrorCodes.RequireEmailVerification:
-            print_markdown(
+            __print_markdown(
+                console,
                 "You need to verify your email address before you can perform this operation. "
                 "Use `funix-deploy email [your_email]` to bind your email address."
             )
         case ErrorCodes.InvalidBindingTicket:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Invalid binding ticket. You may have entered the wrong ticket, check it again."
             )
         case ErrorCodes.InvalidBindingCode:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Invalid binding code. You may have entered the wrong code, check it again."
             )
         case ErrorCodes.AlreadyHas2FA:
-            print_markdown("You have already has 2fa, don't need to bind again.")
+            __print_markdown(console, "You have already has 2fa, don't need to bind again.")
         case ErrorCodes.CannotCloneGitRepo:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Funix cloud cannot clone your git repo. Please check your repo url, if it's private, "
                 "please make it public or upload it in zip file."
             )
         case ErrorCodes.SpecialFoldersNotAllowed:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Please delete `.ebextensions` and `.platform` in your project."
             )
         case ErrorCodes.GitFolderNotAllowed:
-            print_markdown("Please delete `.git` folder in your project.")
+            __print_markdown(console, "Please delete `.git` folder in your project.")
         case ErrorCodes.RequirementsTxtNotFound:
-            print_markdown(
+            __print_markdown(
+                console,
                 "You need `requirements.txt` in your project, if you don't have, "
                 "please create one, make sure it contains `funix`."
             )
         case ErrorCodes.NoFunixInRequirementsTxt:
-            print_markdown(
+            __print_markdown(
+                console,
                 "You need `funix` in your `requirements.txt`, please add it."
             )
         case ErrorCodes.FileTooLarge:
-            print_markdown(
+            __print_markdown(
+                console,
                 "File too large. Please make sure your file is less than 200MB. If you need to upload a larger file, "
                 "you can use AWS or Google Cloud, or contact support@funix.io."
             )
         case ErrorCodes.FileNotFound:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Your python main file is not found. Please make sure your file exists and you have the correct path."
             )
         case ErrorCodes.IllegalString:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Your argument contains illegal characters, remove: ()[]<>:\"'/\\|?*"
             )
         case ErrorCodes.ArgumentTooLong:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Your argument is too long, more than 128 characters. Please shorten it."
             )
         case ErrorCodes.InstancesTooMany:
-            print_markdown(
+            __print_markdown(
+                console,
                 "You already have 10 instances in your account, if you need more, please contact support@funix.io"
             )
         case ErrorCodes.DuplicationName:
-            print_markdown(
+            __print_markdown(
+                console,
                 "You have already used this app name, you can delete the previous instance or use another one."
             )
         case ErrorCodes.InstanceNotFound:
-            print_markdown("Instance not found, please check your instance id.")
+            __print_markdown(console, "Instance not found, please check your instance id.")
         case ErrorCodes.UserHasNoInstance:
-            print_markdown("You have no instance, but you can create one if you want.")
+            __print_markdown(console, "You have no instance, but you can create one if you want.")
         case ErrorCodes.InstanceNotPrepared:
-            print_markdown(
+            __print_markdown(
+                console,
                 "Please wait for the instance to be prepared, try again later. "
                 "If your instance is still not ready after a long time, please contact support@funix.io"
             )
         case ErrorCodes.BodyNoMultiPart:
-            print_markdown(
+            __print_markdown(
+                console,
                 "It seems like you didn't upload any files, please check your request."
             )
         case ErrorCodes.FileIsCleaned:
-            print_markdown(
+            __print_markdown(
+                console,
                 "The file could not be found or was removed because of the 30-minute temporary file limit. "
                 "Please check your file_id and upload again if it was removed due to a timeout."
             )
         case ErrorCodes.InstanceNotPaused:
-            print_markdown("Your instance is not paused, you cannot restore it.")
+            __print_markdown(console, "Your instance is not paused, you cannot restore it.")
         case _:
-            print_markdown(f"Unknown error code `{code}`.")
+            __print_markdown(console, f"Unknown error code `{code}`.")
             return
 
 
@@ -243,6 +300,7 @@ class Routes:
     remove_instance: str = "/instance/remove"
     deploy_git: str = "/instance/create/git"
     deploy_zip: str = "/instance/create/upload"
+    query_instance: str = "/instance/query"
 
 
 class API:
@@ -328,6 +386,16 @@ class API:
     def remove_instance(self, instance_id: int, token: str):
         r = requests.post(
             self.base_url + Routes.remove_instance,
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "id": instance_id,
+            }
+        )
+        return r.json()
+
+    def query_instance(self, instance_id: int, token: str):
+        r = requests.post(
+            self.base_url + Routes.query_instance,
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "id": instance_id,
