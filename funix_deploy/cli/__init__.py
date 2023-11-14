@@ -5,7 +5,7 @@ from getpass import getpass
 from typing import Optional
 
 from qrcode import QRCode
-from rich.console import Console, console
+from rich.console import Console
 from rich.markdown import Markdown
 
 from funix_deploy.api import API, print_from_resp
