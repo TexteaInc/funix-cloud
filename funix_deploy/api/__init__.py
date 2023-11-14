@@ -53,8 +53,8 @@ class ErrorCodes(Enum):
 
 
 def print_from_resp(
-    console: Console,
-    response: ServerResponse,
+        console: Console,
+        response: ServerResponse,
 ):
     def print_json(data: dict):
         console.print_json(
@@ -68,7 +68,7 @@ def print_from_resp(
     def print_markdown(data: str):
         console.print(Markdown(data))
 
-    code=ErrorCodes(response["code"])
+    code = ErrorCodes(response["code"])
 
     match code:
         case ErrorCodes.Success:
@@ -90,8 +90,9 @@ def print_from_resp(
                 "Invalid arguments. Please check your arguments. "
                 "If everything is correct with your arguments, "
                 "it could be a problem caused by kumo or funix-deploy not being updated in time, "
-                "you can either report a new issue or wait for an update.\n----\n"
+                "you can either report a new issue or wait for an update."
             )
+            print_markdown("\n----\n")
             print_json(response)
         case ErrorCodes.NoAccessPermission:
             print_markdown(
@@ -218,7 +219,7 @@ def print_from_resp(
         case ErrorCodes.FileIsCleaned:
             print_markdown(
                 "The file could not be found or was removed because of the 30-minute temporary file limit. "
-                "Please check your fid and upload again if it was removed due to a timeout."
+                "Please check your file_id and upload again if it was removed due to a timeout."
             )
         case ErrorCodes.InstanceNotPaused:
             print_markdown("Your instance is not paused, you cannot restore it.")
@@ -238,6 +239,10 @@ class Routes:
     change_password: str = "/user/password/change"
     forget_password: str = "/user/password/forget"
     reset_password: str = "/user/password/reset"
+    upload: str = "/file/upload"
+    remove_instance: str = "/instance/remove"
+    deploy_git: str = "/instance/create/git"
+    deploy_zip: str = "/instance/create/upload"
 
 
 class API:
@@ -289,7 +294,7 @@ class API:
         return r.json()
 
     def change_password(
-        self, token: str, old_password: str, new_password: str
+            self, token: str, old_password: str, new_password: str
     ) -> ServerResponse:
         r = requests.post(
             self.base_url + Routes.change_password,
@@ -309,5 +314,23 @@ class API:
         r = requests.post(
             self.base_url + Routes.reset_password,
             json={"ticket": ticket, "code": code, "password": password},
+        )
+        return r.json()
+
+    def upload(self, path: str, token: str):
+        r = requests.post(
+            self.base_url + Routes.upload,
+            files={"file": ("deploy.zip", open(path, "rb"))},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        return r.json()
+
+    def remove_instance(self, instance_id: int, token: str):
+        r = requests.post(
+            self.base_url + Routes.remove_instance,
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "id": instance_id,
+            }
         )
         return r.json()
