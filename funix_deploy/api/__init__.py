@@ -107,15 +107,17 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
             __print_markdown(
                 console,
                 "Oops! The funix cloud server seems having some problems now, your request cannot be processed. "
-                "Here is the raw response if you want to report a new issue:\n----\n"
+                "Here is the raw response if you want to report a new issue:"
             )
+            __print_markdown(console, "\n----\n")
             __print_json(console, data)
         case ErrorCodes.DatabaseError:
             __print_markdown(
                 console,
                 "Database error. Please read the raw message below and check if your actions are correct. "
-                "If you are sure your actions are correct, please report a new issue.\n----\n"
+                "If you are sure your actions are correct, please report a new issue."
             )
+            __print_markdown(console, "\n----\n")
             __print_json(console, data)
         case ErrorCodes.InvalidArguments:
             __print_markdown(
@@ -134,8 +136,9 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
                 "or you may have accidentally entered an incorrect user/instance ID or "
                 "you may be planning a theft of some rainwater from our cloud servers. "
                 "Below is the raw message, "
-                "if everything is fine but the error just happens, please report a new issue.\n----\n"
+                "if everything is fine but the error just happens, please report a new issue."
             )
+            __print_markdown(console, "\n----\n")
             __print_json(console, data)
         case ErrorCodes.InvalidUsername:
             __print_markdown(

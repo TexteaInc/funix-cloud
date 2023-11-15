@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import tempfile
+import time
 import zipfile
 from getpass import getpass
 from pathlib import Path
@@ -155,7 +156,7 @@ class DeployCLI:
             is_zipfile = is_zip(path) if is_file else False
 
             if is_zipfile:
-                file_id = self.__upload(path.name)
+                file_id = self.__upload(path)
 
             elif is_file and path.suffix == ".py":
                 requirements_path = path.parent.joinpath("requirements.txt")
@@ -231,12 +232,51 @@ class DeployCLI:
             f"- Instance id: {instance_id}\n"
         )
 
-    def query(self, instance_id: int):
+        print("Getting deploying status, press ^C or ^D to exit.")
+        status = self.__console.status("Waiting for deploying...")
+        status.start()
+        prev_errcode = None
+        prev_stage = None
+        while True:
+            info: ServerResponse = self.__api.query_instance(instance_id, self.__token)
+            if info["code"] != 0:
+                print_from_resp(self.__console, info)
+                time.sleep(0.5)
+                continue
+
+            data = info["data"]
+
+            cur_stage = data["state"]
+            cur_errcode = data["status"]
+
+            first = prev_stage is None or prev_errcode is None
+            updated = prev_stage != cur_stage or prev_errcode != cur_errcode
+            if not (first or updated):
+                time.sleep(0.5)
+                continue
+
+            if cur_errcode != 0:
+                status.update("Deploy failed")
+                print_from_err(self.__console, ErrorCodes(cur_errcode))
+                break
+
+            if cur_stage == 200:
+                status.update("Deploy finished! But you might have to wait a while "
+                              "before you can access the instance.")
+                self.query(instance_id)
+                break
+
+            stage_str = instance_stage_from_int(cur_stage)
+            status.update(f"Deploying... Current Stage: {stage_str}")
+            time.sleep(0.5)
+
+    def query(self, instance_id: int, raw: bool = False):
         """
         Query an instance from Funix Cloud
 
         Args:
             instance_id(int): Instance id
+            raw(bool): Print raw JSON response
         """
         info: ServerResponse = self.__api.query_instance(instance_id, self.__token)
         if info["code"] != 0:
@@ -245,24 +285,32 @@ class DeployCLI:
 
         me = self.__api.me(self.__token)
         if me["code"] != 0:
+            print_from_resp(self.__console, me)
             return
 
         me_name = me["data"]["username"]
         data = info["data"]
-        self.__print_json(data)
+        if raw:
+            self.__print_json(data)
+            return
+
         url1 = f"{data["name"]}-{me_name}.funix.io"
         url2 = f"funix.io/{me_name}/{data["name"]}"
-        parsed_time: datetime = dateutil.parser.isoparse(data["done_time"])
-        zone = get_localzone()
-        time = parsed_time.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")
-        self.__print_markdown(
-            f"- Name: {data["name"]}\n"
-            f"- ID: {data["id"]}\n"
-            f"- Domain: [{url1}]({url1}) or [{url2}]({url2})\n"
-            f"- Status: {instance_stage_from_int(data["state"])}\n"
-            f"- Time: {time} {zone.key}\n"
-            f"- Error Code: {data["status"]}"
-        )
+        markdown = f"- Name: {data["name"]}\n" \
+                   f"- ID: {data["id"]}\n" \
+                   f"- Domain: [{url1}](https://{url1}) or [{url2}](https://{url2})\n"
+
+        done_time = data["done_time"]
+        if done_time:
+            parsed_time: datetime = dateutil.parser.isoparse(done_time)
+            zone = get_localzone()
+            ctime = parsed_time.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")
+            markdown += f"- Created Time: {ctime} {zone.key}\n"
+
+        markdown += f"- Status: {instance_stage_from_int(data["state"])}\n" \
+                    f"- Error Code: {data["status"]}\n"
+
+        self.__print_markdown(markdown)
         error = data["status"]
         if error and error != 0:
             print_from_err(self.__console, ErrorCodes(error))

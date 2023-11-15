@@ -1,8 +1,9 @@
 import sys
+import traceback
 
 import fire
+import requests
 from rich.console import Console
-from rich.markdown import Markdown
 
 from funix_deploy.cli import DeployCLI
 
@@ -15,6 +16,12 @@ def start():
     except (EOFError, KeyboardInterrupt):
         print()
         print("Exiting..")
+        sys.exit(1)
+    except requests.exceptions.ConnectionError as e:
+        i = input("ConnectionError, maybe the server is down? Did you want to see full stacktrace? [y/N]")
+        if i.lower() == "y":
+            print()
+            print(traceback.format_exc())
         sys.exit(1)
 
 
