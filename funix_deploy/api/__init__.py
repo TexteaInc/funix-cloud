@@ -304,6 +304,7 @@ class Routes:
     deploy_git: str = "/instance/create/git"
     deploy_zip: str = "/instance/create/upload"
     query_instance: str = "/instance/query"
+    query_all_instance: str = "/instance/query/all"
 
 
 class API:
@@ -403,5 +404,12 @@ class API:
             json={
                 "id": instance_id,
             }
+        )
+        return r.json()
+
+    def query_all_instance(self, token: str):
+        r = requests.post(
+            self.base_url + Routes.query_all_instance,
+            headers={"Authorization": f"Bearer {token}"},
         )
         return r.json()
