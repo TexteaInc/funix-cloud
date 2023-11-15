@@ -32,8 +32,8 @@ maps = {
     "forget-password": "forget_password",
     "deploy": "deploy",
     "delete": "delete",
-    "remove": "delete",
     "query": "query",
+    "list": "list",
 }
 
 
@@ -270,6 +270,28 @@ class DeployCLI:
             status.update(f"Deploying... Current Stage: {stage_str}")
             time.sleep(0.5)
 
+    def __print_instance(self, user_name: str, data):
+        url1 = f"{data["name"]}-{user_name}.funix.io"
+        url2 = f"funix.io/{user_name}/{data["name"]}"
+        markdown = f"- Name: {data["name"]}\n" \
+                   f"- ID: {data["id"]}\n" \
+                   f"- Domain: [{url1}](https://{url1}) or [{url2}](https://{url2})\n"
+
+        start_time = data.get("start_time")
+        if start_time:
+            parsed_time: datetime = dateutil.parser.isoparse(start_time)
+            zone = get_localzone()
+            ctime = parsed_time.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")
+            markdown += f"- Created Time: {ctime} {zone.key}\n"
+
+        markdown += f"- Status: {instance_stage_from_int(data["state"])}\n" \
+                    f"- Error Code: {data["status"]}\n"
+
+        self.__print_markdown(markdown)
+        error = data["status"]
+        if error and error != 0:
+            print_from_err(self.__console, ErrorCodes(error))
+
     def query(self, instance_id: int, raw: bool = False):
         """
         Query an instance from Funix Cloud
@@ -294,26 +316,37 @@ class DeployCLI:
             self.__print_json(data)
             return
 
-        url1 = f"{data["name"]}-{me_name}.funix.io"
-        url2 = f"funix.io/{me_name}/{data["name"]}"
-        markdown = f"- Name: {data["name"]}\n" \
-                   f"- ID: {data["id"]}\n" \
-                   f"- Domain: [{url1}](https://{url1}) or [{url2}](https://{url2})\n"
+        self.__print_instance(me_name, data)
 
-        done_time = data["done_time"]
-        if done_time:
-            parsed_time: datetime = dateutil.parser.isoparse(done_time)
-            zone = get_localzone()
-            ctime = parsed_time.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")
-            markdown += f"- Created Time: {ctime} {zone.key}\n"
+    def list(self):
+        """
+        List all instances of the current account
+        """
 
-        markdown += f"- Status: {instance_stage_from_int(data["state"])}\n" \
-                    f"- Error Code: {data["status"]}\n"
+        resp = self.__api.query_all_instance(self.__token)
+        if resp["code"] != 0:
+            print_from_resp(self.__console, resp)
+            return
 
-        self.__print_markdown(markdown)
-        error = data["status"]
-        if error and error != 0:
-            print_from_err(self.__console, ErrorCodes(error))
+        instances: list = resp["data"]
+        instances_len = len(instances)
+        if instances_len == 0:
+            print("No instances created")
+            return
+
+        me = self.__api.me(self.__token)
+        if me["code"] != 0:
+            print_from_resp(self.__console, me)
+            return
+
+        me_name = me["data"]["username"]
+
+        self.__print_markdown(f"There are total {instances_len} instances:")
+        self.__print_markdown("----")
+
+        for instance in instances:
+            self.__print_instance(me_name, instance)
+            self.__print_markdown("----")
 
     def delete(self, instance_id: int):
         """
