@@ -234,41 +234,44 @@ class DeployCLI:
 
         print("Getting deploying status, press ^C or ^D to exit.")
         status = self.__console.status("Waiting for deploying...")
-        status.start()
-        prev_errcode = None
-        prev_stage = None
-        while True:
-            info: ServerResponse = self.__api.query_instance(instance_id, self.__token)
-            if info["code"] != 0:
-                print_from_resp(self.__console, info)
+        status.live.transient = False
+        with status:
+            prev_errcode = None
+            prev_stage = None
+            while True:
+                info: ServerResponse = self.__api.query_instance(instance_id, self.__token)
+                if info["code"] != 0:
+                    print_from_resp(self.__console, info)
+                    time.sleep(0.5)
+                    continue
+
+                data = info["data"]
+
+                cur_stage = data["state"]
+                cur_errcode = data["status"]
+
+                first = prev_stage is None or prev_errcode is None
+                updated = prev_stage != cur_stage or prev_errcode != cur_errcode
+                if not (first or updated):
+                    time.sleep(0.5)
+                    continue
+
+                if cur_errcode != 0:
+                    status.update("Deploy failed")
+                    status.stop()
+                    print_from_err(self.__console, ErrorCodes(cur_errcode))
+                    break
+
+                if cur_stage == 200:
+                    status.update("Deploy finished! But you might have to wait a while "
+                                  "before you can access the instance.")
+                    status.stop()
+                    self.query(instance_id)
+                    break
+
+                stage_str = instance_stage_from_int(cur_stage)
+                status.update(f"Deploying... Current Stage: {stage_str}")
                 time.sleep(0.5)
-                continue
-
-            data = info["data"]
-
-            cur_stage = data["state"]
-            cur_errcode = data["status"]
-
-            first = prev_stage is None or prev_errcode is None
-            updated = prev_stage != cur_stage or prev_errcode != cur_errcode
-            if not (first or updated):
-                time.sleep(0.5)
-                continue
-
-            if cur_errcode != 0:
-                status.update("Deploy failed")
-                print_from_err(self.__console, ErrorCodes(cur_errcode))
-                break
-
-            if cur_stage == 200:
-                status.update("Deploy finished! But you might have to wait a while "
-                              "before you can access the instance.")
-                self.query(instance_id)
-                break
-
-            stage_str = instance_stage_from_int(cur_stage)
-            status.update(f"Deploying... Current Stage: {stage_str}")
-            time.sleep(0.5)
 
     def __print_instance(self, user_name: str, data):
         url1 = f"{data["name"]}-{user_name}.funix.io"
