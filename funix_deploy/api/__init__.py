@@ -304,6 +304,7 @@ class Routes:
     deploy_git: str = "/instance/create/git"
     deploy_zip: str = "/instance/create/upload"
     query_instance: str = "/instance/query"
+    query_instance_health: str = "/instance/health"
     query_all_instance: str = "/instance/query/all"
 
 
@@ -400,6 +401,16 @@ class API:
     def query_instance(self, instance_id: int, token: str):
         r = requests.post(
             self.base_url + Routes.query_instance,
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "id": instance_id,
+            }
+        )
+        return r.json()
+
+    def query_instance_health(self, instance_id: int, token: str):
+        r = requests.post(
+            self.base_url + Routes.query_instance_health,
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "id": instance_id,

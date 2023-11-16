@@ -238,6 +238,7 @@ class DeployCLI:
         with status:
             prev_errcode = None
             prev_stage = None
+            prev_health = ""
             while True:
                 info: ServerResponse = self.__api.query_instance(instance_id, self.__token)
                 if info["code"] != 0:
@@ -257,20 +258,59 @@ class DeployCLI:
                     continue
 
                 if cur_errcode != 0:
-                    status.update("Deploy failed")
+                    status.update("Deployment failed")
                     status.stop()
                     print_from_err(self.__console, ErrorCodes(cur_errcode))
                     break
 
-                if cur_stage == 200:
-                    status.update("Deploy finished! But you might have to wait a while "
-                                  "before you can access the instance.")
+                if cur_stage == 200 and prev_health.lower() == "ok":
+                    status.update("Deployment completed! You can now enjoy the funix cloud.")
                     status.stop()
                     self.query(instance_id)
                     break
 
                 stage_str = instance_stage_from_int(cur_stage)
-                status.update(f"Deploying... Current Stage: {stage_str}")
+                if cur_stage != 200:
+                    status.update(f"Deploying... Current Stage: {stage_str}")
+                else:
+                    resp: ServerResponse = self.__api.query_instance_health(instance_id, self.__token)
+                    if resp["code"] != 0:
+                        print_from_resp(self.__console, resp)
+                        continue
+
+                    data = resp["data"]
+                    desc = "Unknown"
+                    color = "Grey"
+                    causes: list[str] = []
+                    if data:
+                        desc = data.get("desc") or desc
+                        color = data.get("color") or color
+                        causes = data.get("causes") or causes
+
+                    # https://rich.readthedocs.io/en/stable/appendix/colors.html
+                    match color:
+                        case "Green":
+                            color = "spring_green3"
+                        case "Grey":
+                            color = "grey58"
+                        case "Yellow":
+                            color = "bright_yellow"
+                        case "Red":
+                            color = "red3"
+                        case _:
+                            # unknown fallback
+                            color = "grey58"
+
+                    prev_health = desc
+                    status_str = f"Waiting for initialization... Health: [{color}]{desc}[/]"
+
+                    if len(causes) != 0:
+                        status_str += "\nReason:\n"
+                        for cause in causes:
+                            status_str += f"    {cause}\n"
+
+                    status.update(status_str)
+
                 time.sleep(0.5)
 
     def __print_instance(self, user_name: str, data):
