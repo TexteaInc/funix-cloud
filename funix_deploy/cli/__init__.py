@@ -274,10 +274,10 @@ class DeployCLI:
                 time.sleep(0.5)
 
     def __print_instance(self, user_name: str, data):
-        url1 = f"{data["name"]}-{user_name}.funix.io"
-        url2 = f"funix.io/{user_name}/{data["name"]}"
-        markdown = f"- Name: {data["name"]}\n" \
-                   f"- ID: {data["id"]}\n" \
+        url1 = f"{data['name']}-{user_name}.funix.io"
+        url2 = f"funix.io/{user_name}/{data['name']}"
+        markdown = f"- Name: {data['name']}\n" \
+                   f"- ID: {data['id']}\n" \
                    f"- Domain: [{url1}](https://{url1}) or [{url2}](https://{url2})\n"
 
         start_time = data.get("start_time")
@@ -287,8 +287,8 @@ class DeployCLI:
             ctime = parsed_time.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")
             markdown += f"- Created Time: {ctime} {zone.key}\n"
 
-        markdown += f"- Status: {instance_stage_from_int(data["state"])}\n" \
-                    f"- Error Code: {data["status"]}\n"
+        markdown += f"- Status: {instance_stage_from_int(data['state'])}\n" \
+                    f"- Error Code: {data['status']}\n"
 
         self.__print_markdown(markdown)
         error = data["status"]
