@@ -122,6 +122,7 @@ class DeployCLI:
             file: str = "main.py",
             no_frontend: bool = False,
             transform: bool = False,
+            lazy: bool = False,
             app_secret: str | None = None,
             rate_limiters: list[RateLimiter] | None = None,
             env: dict[str, str] | None = None,
@@ -200,6 +201,7 @@ class DeployCLI:
             "entry_point": file,
             "with_no_frontend": no_frontend,
             "with_transform": transform,
+            "with_lazy": lazy,
         })
 
         if app_secret and isinstance(app_secret, str):
