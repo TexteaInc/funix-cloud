@@ -243,7 +243,7 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
         case ErrorCodes.IllegalString:
             __print_markdown(
                 console,
-                "Your argument contains illegal characters, remove: ()[]<>:\"'/\\|?*"
+                "Your argument contains illegal characters, remove: _()[]<>:\"'/\\|?*"
             )
         case ErrorCodes.ArgumentTooLong:
             __print_markdown(
