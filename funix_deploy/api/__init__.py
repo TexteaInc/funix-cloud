@@ -306,6 +306,7 @@ class Routes:
     query_instance: str = "/instance/query"
     query_instance_health: str = "/instance/health"
     query_all_instance: str = "/instance/query/all"
+    restore_instance: str = "/instance/restore"
 
 
 class API:
@@ -401,6 +402,16 @@ class API:
     def query_instance(self, instance_id: int, token: str):
         r = requests.post(
             self.base_url + Routes.query_instance,
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "id": instance_id,
+            }
+        )
+        return r.json()
+
+    def restore_instance(self, instance_id: int, token: str):
+        r = requests.post(
+            self.base_url + Routes.restore_instance,
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "id": instance_id,
