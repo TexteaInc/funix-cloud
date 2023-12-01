@@ -34,6 +34,7 @@ maps = {
     "delete": "delete",
     "query": "query",
     "list": "list",
+    "restore": "restore",
 }
 
 
@@ -362,6 +363,22 @@ class DeployCLI:
             return
 
         self.__print_instance(me_name, data)
+
+    def restore(self, instance_id: int):
+        """
+        Restore an instance from Funix Cloud
+
+        Args:
+            instance_id(int): Instance id
+        """
+        info: ServerResponse = self.__api.restore_instance(instance_id, self.__token)
+
+        if info["code"] != 0:
+            print_from_resp(self.__console, info)
+            return
+
+        self.query(self, instance_id)
+
 
     def list(self):
         """
