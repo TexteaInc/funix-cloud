@@ -137,6 +137,7 @@ class DeployCLI:
             file (str, optional): The entry file to run. Defaults to "main.py".
             no_frontend (bool, optional): Whether to disable the frontend. Defaults to False.
             transform (bool, optional): Whether to use transform mode. Defaults to False.
+            lazy (bool, optional): Whether to use lazy mode. Defaults to False.
             app_secret (str | None, optional): The app secret. Defaults to None.
             rate_limiters (list[RateLimiter], optional): The rate limiters. Defaults to [].
                 Example: "[{'max_calls': 10, 'period': 60, 'source': 'browser'}]"
