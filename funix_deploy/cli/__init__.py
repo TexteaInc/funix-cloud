@@ -237,7 +237,7 @@ class DeployCLI:
 
         print("Getting deploying status, press ^C or ^D to exit.")
         status = self.__console.status("Waiting for deploying...")
-        status._live.transient = False
+        status.live().transient = False
         with status:
             prev_errcode = None
             prev_stage = None
