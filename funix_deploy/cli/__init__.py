@@ -387,7 +387,7 @@ class DeployCLI:
             print_from_resp(self.__console, info)
             return
 
-        self.query(self, instance_id)
+        self.query(instance_id)
 
     def list(self):
         """
