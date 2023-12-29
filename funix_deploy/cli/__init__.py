@@ -10,10 +10,12 @@ from typing import Optional, TypedDict, Literal
 
 import dateutil
 import requests
+import rich.text
 from dateutil import parser
 from qrcode import QRCode
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.prompt import Confirm
 from tzlocal import get_localzone
 
 from funix_deploy.api import API, print_from_resp, Routes, ServerResponse, instance_stage_from_int, print_from_err, \
@@ -117,16 +119,16 @@ class DeployCLI:
             self.email(email)
 
     def deploy(
-            self,
-            url_or_path: str,
-            instance_name: str,
-            file: str = "main.py",
-            no_frontend: bool = False,
-            transform: bool = False,
-            lazy: bool = False,
-            app_secret: str | None = None,
-            rate_limiters: list[RateLimiter] | None = None,
-            env: dict[str, str] | None = None,
+        self,
+        url_or_path: str,
+        instance_name: str,
+        file: str = "main.py",
+        no_frontend: bool = False,
+        transform: bool = False,
+        lazy: bool = False,
+        app_secret: str | None = None,
+        rate_limiters: list[RateLimiter] | None = None,
+        env: dict[str, str] | None = None,
     ):
         """
         Deploy local folder to Funix Cloud.
@@ -164,9 +166,16 @@ class DeployCLI:
             elif is_file and path.suffix == ".py":
                 requirements_path = path.parent.joinpath("requirements.txt")
                 if not requirements_path.exists():
-                    self.__print_markdown(
-                        f"File `{requirements_path}` is not found... A `requirements.txt` is required for deployment.")
-                    return
+                    create_requirements = Confirm.ask(
+                        f"File `{requirements_path}` is not found... It's required for deployment.\n"
+                        f"Do you want to create a `requirements.txt` that "
+                        f"only contains the `funix` dependency and continue?")
+
+                    if not create_requirements:
+                        return
+
+                    with open(requirements_path, "w") as f:
+                        f.write("funix\n")
 
                 with tempfile.NamedTemporaryFile(prefix="funix-deploy-", suffix=".zip") as tmp:
                     print("Compressing deployment zip...")
@@ -379,7 +388,6 @@ class DeployCLI:
             return
 
         self.query(self, instance_id)
-
 
     def list(self):
         """
