@@ -133,10 +133,8 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
             __print_markdown(
                 console,
                 "No access permission. You may need to log in, "
-                "or you may have accidentally entered an incorrect user/instance ID or "
-                "you may be planning a theft of some rainwater from our cloud servers. "
-                "Below is the raw message, "
-                "if everything is fine but the error just happens, please report a new issue."
+                "or you may have accidentally entered an incorrect user/instance ID"
+                "Below is the raw message, if everything is fine but the error just happens, please report a new issue."
             )
             __print_markdown(console, "\n----\n")
             __print_json(console, data)

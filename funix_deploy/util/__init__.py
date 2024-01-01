@@ -36,3 +36,54 @@ def is_zip(path) -> bool:
     with open(path, "rb") as f:
         head: bytes = f.read(4)
         return head == b"PK\x03\x04" or head == b"PK\x05\x06" or head == b"PK\x07\x08"
+
+
+def check_username(name: str) -> bool:
+    if len(name) < 5 or len(name) > 50:
+        return False
+
+    for ch in name:
+        valid = ch.isalnum() or ch == '_' or ch == '-'
+        if not valid:
+            return False
+
+    return True
+
+
+def check_email(email: str) -> bool:
+    if '@' not in email:
+        return False
+
+    return True
+
+
+__pwd_special_chars = "!@#$%^&*()_+-=,.<>?;:[]{}|~"
+
+
+def check_password(pwd: str) -> bool:
+    if len(pwd) < 8 or len(pwd) > 64:
+        return False
+
+    has_upper = False
+    has_lower = False
+    has_number = False
+    has_special = False
+    for ch in pwd:
+        if not ch.isascii():
+            return False
+        valid = ch.isalnum() or ch in __pwd_special_chars
+        if not valid:
+            return False
+        if ch.isupper():
+            has_upper = True
+        if ch.islower():
+            has_lower = True
+        if ch.isnumeric():
+            has_number = True
+        if ch in __pwd_special_chars:
+            has_special = True
+
+    if int(has_upper) + int(has_lower) + int(has_number) + int(has_special) < 2:
+        return False
+
+    return True

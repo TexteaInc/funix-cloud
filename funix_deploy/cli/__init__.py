@@ -10,18 +10,17 @@ from typing import Optional, TypedDict, Literal
 
 import dateutil
 import requests
-import rich.text
 from dateutil import parser
 from qrcode import QRCode
 from rich.console import Console
 from rich.markdown import Markdown
-from rich.prompt import Confirm
+from rich.prompt import Confirm, Prompt
 from tzlocal import get_localzone
 
 from funix_deploy.api import API, print_from_resp, Routes, ServerResponse, instance_stage_from_int, print_from_err, \
     ErrorCodes
 from funix_deploy.config import ConfigDict
-from funix_deploy.util import is_git_url, is_zip, zip_folder
+from funix_deploy.util import is_git_url, is_zip, zip_folder, check_username, check_password, check_email
 
 maps = {
     "register": "register",
@@ -89,34 +88,56 @@ class DeployCLI:
             return
         return resp["data"]["file_id"]
 
-    def register(self, username: str, email: Optional[str] = None):
+    def register(
+        self,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        email: Optional[str] = None,
+    ):
         """
         Register a new account on the Funix Cloud.
-
-        Args:
-            username (str): Username to register with.
-            email (Optional[str], optional): Email to bind with. Defaults to None.
         """
-        password = getpass("Please input password: ")
-        confirm_password = getpass("Please confirm password: ")
-        if password != confirm_password:
-            self.__console.print("Passwords don't match.")
+        if username is None:
+            while True:
+                username = str(Prompt.ask("What is a user name you preferred")).lower()
+                if check_username(username):
+                    break
+                self.__print_markdown("Usernames must be at least five characters long and "
+                                      "can only contain numbers, letters, hyphen, and underscores.")
+
+        if email is None:
+            while True:
+                email = Prompt.ask("What is your email")
+                if check_email(email):
+                    break
+                self.__print_markdown("Your email seems not correct, please input again")
+
+        if password is None:
+            while True:
+                password = Prompt.ask("Password", password=True)
+                if not check_password(password):
+                    password = None
+                    print_from_err(self.__console, ErrorCodes.InvalidPassword)
+                    continue
+
+                password_confirm = Prompt.ask("Confirm Password", password=True)
+                if password == password_confirm:
+                    break
+                self.__print_markdown("Your password does not match, please input again")
+
+        register_resp = self.__api.register(username, password)
+        if register_resp["code"] != 0:
+            self.__print_markdown("Failed to register, please try again")
+            print_from_resp(self.__console, register_resp)
             return
 
-        result = self.__api.register(username, password)
-
-        if result["code"] == 0:
-            self.__console.print("Register successful! Log in now.")
-            token = self.__api.login(username, password)["data"]["token"]
-            self.__config.set("token", token)
-            self.__token = token
-            self.__console.print("Login successful! Your token is saved.")
-        else:
-            print_from_resp(self.__console, result)
+        login_resp = self.__api.login(username, password)
+        if login_resp["code"] != 0:
+            self.__print_markdown("Failed to login, please try again")
+            print_from_resp(self.__console, register_resp)
             return
 
-        if email:
-            self.email(email)
+        self.email(email)
 
     def deploy(
         self,
