@@ -125,7 +125,6 @@ class DeployCLI:
         file: str = "main.py",
         no_frontend: bool = False,
         transform: bool = False,
-        lazy: bool = False,
         app_secret: str | None = None,
         rate_limiters: list[RateLimiter] | None = None,
         env: dict[str, str] | None = None,
@@ -139,7 +138,6 @@ class DeployCLI:
             file (str, optional): The entry file to run. Defaults to "main.py".
             no_frontend (bool, optional): Whether to disable the frontend. Defaults to False.
             transform (bool, optional): Whether to use transform mode. Defaults to False.
-            lazy (bool, optional): Whether to use lazy mode. Defaults to False.
             app_secret (str | None, optional): The app secret. Defaults to None.
             rate_limiters (list[RateLimiter], optional): The rate limiters. Defaults to [].
                 Example: "[{'max_calls': 10, 'period': 60, 'source': 'browser'}]"
@@ -212,7 +210,6 @@ class DeployCLI:
             "entry_point": file,
             "with_no_frontend": no_frontend,
             "with_transform": transform,
-            "with_lazy": lazy,
         })
 
         if app_secret and isinstance(app_secret, str):
