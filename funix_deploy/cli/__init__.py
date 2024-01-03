@@ -137,6 +137,11 @@ class DeployCLI:
             print_from_resp(self.__console, register_resp)
             return
 
+        self.__token = login_resp["data"]["token"]
+        self.__config.set("token", login_resp["data"]["token"])
+        self.__console.print("Login successful! Your token is saved.")
+
+        self.__console.print("Sending verification email...")
         self.email(email)
 
     def deploy(
