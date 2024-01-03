@@ -185,6 +185,19 @@ class DeployCLI:
             is_zipfile = is_zip(path) if is_file else False
 
             if is_zipfile:
+                found = False
+                with zipfile.ZipFile(path) as _zip:
+                    for zf in _zip.filelist:
+                        if zf.orig_filename == file:
+                            found = True
+                            break
+
+                if not found:
+                    self.__print_markdown(f"The entry file `{file}` is not in zip file `{path}`, "
+                                          f"please specify it with `--file` option")
+                    return
+
+                print("Uploading deployment zip...")
                 file_id = self.__upload(path)
 
             elif is_file and path.suffix == ".py":
@@ -210,6 +223,12 @@ class DeployCLI:
                     file_id = self.__upload(tmp.name)
 
             elif os.path.isdir(path):
+                entry_file: Path = Path(os.path.join(path, file))
+                if not entry_file.exists():
+                    self.__print_markdown(f"The entry file `{entry_file.absolute()}` is not exist, "
+                                          f"please specify it with `--file` option")
+                    return
+
                 with tempfile.NamedTemporaryFile(prefix="funix-deploy-", suffix=".zip") as tmp:
                     print("Compressing deployment zip...")
                     with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
