@@ -73,5 +73,5 @@ Deploying a git project is similar to deploying a local folder, just from a diff
 funix-deploy list
 # delete an instance, the 1 is instance id,
 # you can query it through the list command above.
-funix delete 1
+funix-deploy delete 1
 ```
