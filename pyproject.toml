@@ -1,6 +1,6 @@
 [project]
 name = "funix_deploy"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
     { name = "Textea Inc.", email = "bao@textea.co" }
 ]
@@ -31,4 +31,4 @@ dependencies = [
 homepage = "https://cloud.funix.io"
 
 [project.scripts]
-funix-deploy = "funix_deploy.__init__:start"
+funix-cloud = "funix_cloud.__init__:start"

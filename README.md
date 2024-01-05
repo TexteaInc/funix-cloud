@@ -1,4 +1,4 @@
-# Funix-Deploy
+# Funix-Cloud
 
 > It's only in the development stage right now, and development may be behind Kumo (Funix-Cloud).
 
@@ -14,8 +14,8 @@ Funix Cloud Tool, help you deploy your local or git repository to Funix Cloud.
 Currently, we only provide Git installation:
 
 ```bash
-git clone https://github.com/TexteaInc/funix-deploy
-cd funix-deploy
+git clone https://github.com/TexteaInc/funix-cloud
+cd funix-cloud
 pip install -e .
 ```
 
@@ -28,7 +28,7 @@ pip install
 ## Registration
 
 ```plaintext
-> funix-deploy register
+> funix-cloud register
 What is a user name you preferred: myusername      
 What is your email: myemail@gmail.com
 Password: ********
@@ -45,7 +45,7 @@ Funix will then email you a link to click to complete your registration.
 ### Single file
 
 ```bash
-funix-deploy deploy main.py my-first-app
+funix-cloud deploy main.py my-first-app
 ```
 
 We need you to provide a `requirement.txt` file to determine which dependencies to install. If `requirement.txt` does not exist, we will prompt you whether to create a `requirement.txt` with just funix.
@@ -53,7 +53,7 @@ We need you to provide a `requirement.txt` file to determine which dependencies 
 ### Folder
 
 ```bash
-funix-deploy deploy my-project my-first-app --file main.py
+funix-cloud deploy my-project my-first-app --file main.py
 ```
 
 For local folder, we also need a `requirement.txt`. And the `--file` option specifies the program entry file, which defaults to `main.py`.
@@ -61,7 +61,7 @@ For local folder, we also need a `requirement.txt`. And the `--file` option spec
 ### Git
 
 ```bash
-funix-deploy deploy https://github.com/myusername/myrepo.git my-git-app --file main.py
+funix-cloud deploy https://github.com/myusername/myrepo.git my-git-app --file main.py
 ```
 
 Deploying a git project is similar to deploying a local folder, just from a different source.
@@ -70,8 +70,8 @@ Deploying a git project is similar to deploying a local folder, just from a diff
 
 ```bash
 # list deployed instances
-funix-deploy list
+funix-cloud list
 # delete an instance, the 1 is instance id,
 # you can query it through the list command above.
-funix-deploy delete 1
+funix-cloud delete 1
 ```

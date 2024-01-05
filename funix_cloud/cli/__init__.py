@@ -63,7 +63,7 @@ class DeployCLI:
 
     def __init__(self):
         self.__config = ConfigDict(
-            os.path.expanduser("~/.config/funix-deploy/config.json")
+            os.path.expanduser("~/.config/funix-cloud/config.json")
         )
         self.__console = Console()
         self.__api = API(self.__config.get("api_server", "https://cloud-dev.funix.io"))
@@ -214,7 +214,7 @@ class DeployCLI:
                     with open(requirements_path, "w") as f:
                         f.write("funix\n")
 
-                with tempfile.NamedTemporaryFile(prefix="funix-deploy-", suffix=".zip") as tmp:
+                with tempfile.NamedTemporaryFile(prefix="funix-cloud-", suffix=".zip") as tmp:
                     print("Compressing deployment zip...")
                     with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
                         archive.writestr("main.py", path.read_text())
@@ -229,7 +229,7 @@ class DeployCLI:
                                           f"please specify it with `--file` option")
                     return
 
-                with tempfile.NamedTemporaryFile(prefix="funix-deploy-", suffix=".zip") as tmp:
+                with tempfile.NamedTemporaryFile(prefix="funix-cloud-", suffix=".zip") as tmp:
                     print("Compressing deployment zip...")
                     with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
                         zip_folder(path.absolute(), archive)
@@ -613,7 +613,7 @@ class DeployCLI:
 
         if result["code"] == 0:
             self.__print_markdown(
-                f"Password changed successful! Funix-deploy will log you out soon, "
+                f"Password changed successful! Funix-cloud will log you out soon, "
                 f"you need log in again."
             )
             self.logout()

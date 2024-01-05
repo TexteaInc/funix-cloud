@@ -124,7 +124,7 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
                 console,
                 "Invalid arguments. Please check your arguments. "
                 "If everything is correct with your arguments, "
-                "it could be a problem caused by kumo or funix-deploy not being updated in time, "
+                "it could be a problem caused by kumo or funix-cloud not being updated in time, "
                 "you can either report a new issue or wait for an update."
             )
             __print_markdown(console, "\n----\n")
@@ -170,7 +170,7 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
             __print_markdown(
                 console,
                 "Incorrect password. You may have entered the wrong password, if you don't remember your password, "
-                "Use `funix-deploy reset-password` to reset your password."
+                "Use `funix-cloud reset-password` to reset your password."
             )
         case ErrorCodes.MismatchedEmail:
             __print_markdown(
@@ -189,7 +189,7 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
             __print_markdown(
                 console,
                 "You need to verify your email address before you can perform this operation. "
-                "Use `funix-deploy email [your_email]` to bind your email address."
+                "Use `funix-cloud email [your_email]` to bind your email address."
             )
         case ErrorCodes.InvalidBindingTicket:
             __print_markdown(
