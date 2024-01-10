@@ -1,5 +1,5 @@
 [project]
-name = "funix_deploy"
+name = "funix-cloud"
 version = "0.1.0"
 authors = [
     { name = "Textea Inc.", email = "bao@textea.co" }
