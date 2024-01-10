@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://cloud.funix.io"
+homepage = "https://github.com/TexteaInc/funix-cloud"
 
 [project.scripts]
 funix-cloud = "funix_cloud.__init__:start"
