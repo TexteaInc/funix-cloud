@@ -6,7 +6,7 @@ import requests
 from rich.console import Console
 from rich.prompt import Confirm
 
-from funix_deploy.cli import DeployCLI
+from funix_cloud.cli import DeployCLI
 
 console = Console()
 

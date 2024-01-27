@@ -17,10 +17,10 @@ from rich.markdown import Markdown
 from rich.prompt import Confirm, Prompt
 from tzlocal import get_localzone
 
-from funix_deploy.api import API, print_from_resp, Routes, ServerResponse, instance_stage_from_int, print_from_err, \
+from funix_cloud.api import API, print_from_resp, Routes, ServerResponse, instance_stage_from_int, print_from_err, \
     ErrorCodes
-from funix_deploy.config import ConfigDict
-from funix_deploy.util import is_git_url, is_zip, zip_folder, check_username, check_password, check_email
+from funix_cloud.config import ConfigDict
+from funix_cloud.util import is_git_url, is_zip, zip_folder, check_username, check_password, check_email
 
 maps = {
     "register": "register",
