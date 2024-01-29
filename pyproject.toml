@@ -32,3 +32,4 @@ homepage = "https://github.com/TexteaInc/funix-cloud"
 
 [project.scripts]
 funix-cloud = "funix_cloud.__init__:start"
+lmkc = "funix_cloud.key:__main__"
