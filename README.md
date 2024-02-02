@@ -22,17 +22,17 @@ pip install -e .
 In the future, we will support Pip installation:
 
 ```bash
-pip install 
+pip install
 ```
 
 ## Registration
 
 ```plaintext
 > funix-cloud register
-What is a user name you preferred: myusername      
+What is a user name you preferred: myusername
 What is your email: myemail@gmail.com
 Password: ********
-Confirm Password: ******** 
+Confirm Password: ********
 Login successful! Your token is saved.
 Sending verification email...
 Your email myemail@gmail.com will receive a verification link, please check your inbox.
@@ -74,4 +74,39 @@ funix-cloud list
 # delete an instance, the 1 is instance id,
 # you can query it through the list command above.
 funix-cloud delete 1
+```
+
+## For LMK
+
+If you need use remote LlaMasterKey server (like in your company network or in the future on kumo), you need `funix-cloud` to help you getting the env file.
+
+After installing the `funix-cloud`, `lmkc` command should be available:
+
+```bash
+# For example
+lmkc env https://remote.lmk.sh/
+# It will get env file from https://remote.lmk.sh/, and save it in your current folder with name `llamakey_local.env`.
+# If you don't want to fill the url argument, you can fill a system env called `BASE_URL` with remote lmk server.
+```
+
+Now you use it before call your python script with these:
+
+```bash
+source llamakey_local.env
+python3 your_code.py
+```
+
+If you don't like doing this in command line, you can use module:
+
+```python
+from funix_cloud.key import LlaMasterKey
+
+LlaMasterKey.overwrite_env("https://remote.lmk.sh/")  # Your remote lmk server
+
+
+# Here is your code, this is an example
+from huggingface_hub import InferenceClient
+
+client = InferenceClient()
+print(client.translation("My name is Sarah and I live in London", model="t5-small"))
 ```
