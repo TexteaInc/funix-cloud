@@ -10,7 +10,7 @@ import ipaddress
 local_configure_file = "llamakey_local.env"
 url_keys = ["OPENAI_BASE_URL", "CO_API_URL", "ANYSCALE_BASE_URL", "HF_INFERENCE_ENDPOINT", "VECTARA_BASE_URL"]
 
-def __replace_url_with(url: str, replace_url: str) -> str:
+def replace_url_with(url: str, replace_url: str) -> str:
     """
     Replace the url with the new url
 
@@ -36,18 +36,17 @@ def __replace_url_with(url: str, replace_url: str) -> str:
     return parsed_url.geturl()
 
 
-def __replace_env(env: dict, url: str, replace_url: str) -> dict:
+def replace_env(env: dict, replace_url: str) -> dict:
     """
     Ensure all urls are replaced with the new url
 
     :param env: The environment dictionary
-    :param url: The original url
     :param replace_url: The new url
     """
     new_env = {}
     for key, value in env.items():
         if key in url_keys:
-            new_env[key] = __replace_url_with(value, replace_url)
+            new_env[key] = replace_url_with(value, replace_url)
         else:
             new_env[key] = value
     return new_env
@@ -68,12 +67,12 @@ class LlaMasterKey:
                 print("LlaMasterKey client encountered an error: \n\n" + content)
                 return
 
-            data = __replace_env(json.loads(content))
+            data = replace_env(json.loads(content), url)
             env_content = ""
             for key, value in data.items():
                 env_content += f"{key}=\"{value}\"\n"
-            with open(".env", "w") as f:
-                f.write(data)
+            with open(local_configure_file, "w") as f:
+                f.write(env_content)
             print(f"Environment file written to `{local_configure_file}`, now run `source {local_configure_file}`")
         else:
             print("Usage: `lmkcli env <url>` or set `BASE_URL` environment variable")
@@ -88,7 +87,7 @@ class LlaMasterKey:
         response = urllib3.request("GET", url.rstrip("/") + "/lmk/env?format=json")
         updated_env = response.data.decode("utf-8")
 
-        data = __replace_env(json.loads(updated_env))
+        data = replace_env(json.loads(updated_env), url)
         os.environ.update(data)
 
 
