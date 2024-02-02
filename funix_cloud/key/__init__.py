@@ -78,12 +78,14 @@ class LlaMasterKey:
             print("Usage: `lmkcli env <url>` or set `BASE_URL` environment variable")
 
     @staticmethod
-    def overwrite_env(url: str):
+    def overwrite_env(url: typing.Optional[str] = os.environ.get("BASE_URL", None)):
         """
         Overwrite environment variables with those from server (in Python runtime, not in shell)
 
         :param url: LlaMasterKey server url
         """
+        if not url:
+            raise ValueError("`url` is not valid.")
         response = urllib3.request("GET", url.rstrip("/") + "/lmk/env?format=json")
         updated_env = response.data.decode("utf-8")
 
