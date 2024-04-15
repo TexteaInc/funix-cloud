@@ -312,7 +312,7 @@ class DeployCLI:
                     time.sleep(0.5)
                     continue
 
-                if cur_errcode != 0:
+                if cur_errcode != 0 or cur_stage == 400:
                     status.update("Deployment failed")
                     status.stop()
                     print_from_err(self.__console, ErrorCodes(cur_errcode))
@@ -366,7 +366,7 @@ class DeployCLI:
 
                     status.update(status_str)
 
-                time.sleep(0.5)
+                time.sleep(2)
 
     def __print_instance(self, user_name: str, data):
         url1 = f"{data['name']}-{user_name}.funix.io"
