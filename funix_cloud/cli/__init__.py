@@ -16,6 +16,8 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Confirm, Prompt
 from tzlocal import get_localzone
+import tomlkit
+from dotenv import dotenv_values
 
 from funix_cloud.api import API, print_from_resp, Routes, ServerResponse, instance_stage_from_int, print_from_err, \
     ErrorCodes
@@ -36,6 +38,7 @@ maps = {
     "query": "query",
     "list": "list",
     "restore": "restore",
+    "run": "run",
 }
 
 
@@ -389,6 +392,60 @@ class DeployCLI:
         error = data["status"]
         if error and error != 0:
             print_from_err(self.__console, ErrorCodes(error))
+    
+    def run(self):
+        """
+        Deploy with configuration file
+        """
+        if not os.path.exists("kumo.toml"):
+            self.__print_markdown("`kumo.toml` not found in current directory")
+            return
+        
+        with open("kumo.toml") as f:
+            config = tomlkit.loads(f.read())
+        
+        if "main" not in config:
+            self.__print_markdown("`main` key not found in `kumo.toml`")
+            return
+        
+        application_name = config["main"]["name"]
+        entry_file = config["main"].get("entry_file", "main.py")
+        
+        env_file = None
+        no_frontend = False
+        transform = False
+        app_secret = None
+        env = None
+        
+        if "config" in config:
+            config = config["config"]
+            no_frontend = config.get("no_frontend", False)
+            transform = config.get("transform", False)
+            app_secret = config.get("secret", None)
+            env_file = config.get("env", None)
+        
+        if env_file:
+            if not os.path.exists(env_file):
+                self.__print_markdown(f"Environment file `{env_file}` not found")
+                return
+            
+            env = dotenv_values(env_file)
+        else:
+            if not isinstance(env_file, bool):
+                if os.path.exists(".env"):
+                    env = dotenv_values(".env")
+        
+        self.__print_markdown("Deploying with configuration file...")
+        self.deploy(
+            ".",
+            application_name,
+            entry_file,
+            no_frontend,
+            transform,
+            app_secret,
+            None,
+            env
+        )
 
     def query(self, instance_id: int, raw: bool = False):
         """

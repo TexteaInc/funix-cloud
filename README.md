@@ -45,7 +45,7 @@ Funix will then email you a link to click to complete your registration.
 ### Single file
 
 ```bash
-funix-cloud deploy main.py my-first-app
+funix-cloud deploy main.py [Application Name, example: "my-first-app"]
 ```
 
 We need you to provide a `requirement.txt` file to determine which dependencies to install. If `requirement.txt` does not exist, we will prompt you whether to create a `requirement.txt` with just funix.
@@ -53,10 +53,28 @@ We need you to provide a `requirement.txt` file to determine which dependencies 
 ### Folder
 
 ```bash
-funix-cloud deploy my-project my-first-app --file main.py
+funix-cloud deploy [Local folder or git link: example: "my-project"] [Application Name, example: "my-first-app"] --file main.py
 ```
 
 For local folder, we also need a `requirement.txt`. And the `--file` option specifies the program entry file, which defaults to `main.py`.
+
+### Configuration File
+
+```bash
+funix-cloud run
+```
+
+Writing complex options in a configuration file is one of the best ways to deploy a project.
+
+Create a new file `kumo.toml` with these content:
+
+```toml
+[main]
+name = "hello-funix"    # Application Name
+entry = "main.py"       # Entry file
+```
+
+And run `funix-cloud run` in your console, all is well! For more information read [config.md](config.md).
 
 ### Git
 
