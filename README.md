@@ -1,8 +1,6 @@
 # Funix-Cloud
 
-> It's only in the development stage right now, and development may be behind Kumo (Funix-Cloud).
-
-Funix Cloud Tool, help you deploy your local or git repository to Funix Cloud.
+Funix Cloud is a tool that helps you deploy your local or git repository to Funix Cloud.
 
 ## Requirements
 
@@ -39,7 +37,7 @@ Sending verification email...
 Your email myemail@gmail.com will receive a verification link, please check your inbox.
 ```
 
-Funix will then email you a link to click to complete your registration.
+Funix will then email you a link to click to complete your registration. 
 
 To log in and out, use the commands `funix-cloud login [username]` and `funix-cloud logout`.
 ```plaintext
@@ -55,7 +53,7 @@ Login successful! Your token is saved.
 funix-cloud deploy main.py [Application Name, example: "my-first-app"]
 ```
 
-To deploy a file, you need to provide a `requirements.txt` file to determine which dependencies to install. More details are provided below. If `requirements.txt` does not exist, we will prompt you whether to create a `requirements.txt` with just funix.
+To deploy a file, you need to provide a `requirements.txt` file to determine which dependencies to install. More details are provided below. If `requirements.txt` does not exist, you will be prompted with the option to have a `requirements.txt` with just funix created on your behalf.
 
 ### Folder
 
@@ -63,11 +61,11 @@ To deploy a file, you need to provide a `requirements.txt` file to determine whi
 funix-cloud deploy [Local folder or git link: example: "my-project"] [Application Name, example: "my-first-app"] --file main.py
 ```
 
-For local folder, we also need a `requirements.txt`. And the `--file` option specifies the program entry file, which defaults to `main.py`.
+The `--file` option specifies the program entry file, which defaults to `main.py`. Note: To deploy a local folder, you will also need a `requirements.txt`. The file should exist in the same directory as the folder you are deploying, not inside the folder itself. 
 
 ### requirements.txt File
 
-To deploy and file or folder, you will need a `requirements.txt` file to specify required dependencies. This file should exist in the same directory as the file or folder you are deploying. Simply add the names of any library/ packages your program uses. You can additionally specify versions of the installation. Below is an example for a project usinf dependencies funix, openai (version 1.1.1 or later) and requests.  
+To deploy a file or folder, you will need a `requirements.txt` file to specify required dependencies. This file should exist in the same directory as the file or folder you are deploying. Simply add the names of any library/ packages your program uses. You can additionally specify versions of the installation. Below is an example for a project usinf dependencies funix, openai (version 1.1.1 or later), and requests.  
 
 ```plaintext
 funix
@@ -81,7 +79,7 @@ requests
 funix-cloud run
 ```
 
-Writing complex options in a configuration file is one of the best ways to deploy a project.
+Writing in a configuration file is one of the best ways to deploy a project with complex options.
 
 Create a new file `kumo.toml` with these content:
 
@@ -102,6 +100,9 @@ funix-cloud deploy https://github.com/myusername/myrepo.git my-git-app --file ma
 Deploying a git project is similar to deploying a local folder, just from a different source.
 
 ## Other operations
+To see a complete list of Funix Cloud commands and descriptions, run `funix-cloud` or `funix-cloud --help`. 
+
+Common commands include `funix-cloud list` to see your current deployed instances and `funix-cloud delete [id number]` to delete an instance.
 
 ```bash
 # list deployed instances
