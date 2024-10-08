@@ -22,11 +22,12 @@ pip install -e .
 In the future, we will support Pip installation:
 
 ```bash
-pip install
+pip install funix-cloud
 ```
 
 ## Registration
 
+To use Funix Cloud, you will first need to register an account. This will be used to create and manage Funix Cloud instances. 
 ```plaintext
 > funix-cloud register
 What is a user name you preferred: myusername
@@ -40,6 +41,12 @@ Your email myemail@gmail.com will receive a verification link, please check your
 
 Funix will then email you a link to click to complete your registration.
 
+To log in and out, use the commands `funix-cloud login [username]` and `funix-cloud logout`.
+```plaintext
+> funix-cloud login myusername
+Please input Password: ********
+Login successful! Your token is saved.
+```
 ## Deployment
 
 ### Single file
@@ -48,7 +55,7 @@ Funix will then email you a link to click to complete your registration.
 funix-cloud deploy main.py [Application Name, example: "my-first-app"]
 ```
 
-We need you to provide a `requirement.txt` file to determine which dependencies to install. If `requirement.txt` does not exist, we will prompt you whether to create a `requirement.txt` with just funix.
+To deploy a file, you need to provide a `requirements.txt` file to determine which dependencies to install. More details are provided below. If `requirements.txt` does not exist, we will prompt you whether to create a `requirements.txt` with just funix.
 
 ### Folder
 
@@ -56,7 +63,17 @@ We need you to provide a `requirement.txt` file to determine which dependencies 
 funix-cloud deploy [Local folder or git link: example: "my-project"] [Application Name, example: "my-first-app"] --file main.py
 ```
 
-For local folder, we also need a `requirement.txt`. And the `--file` option specifies the program entry file, which defaults to `main.py`.
+For local folder, we also need a `requirements.txt`. And the `--file` option specifies the program entry file, which defaults to `main.py`.
+
+### requirements.txt File
+
+To deploy and file or folder, you will need a `requirements.txt` file to specify required dependencies. This file should exist in the same directory as the file or folder you are deploying. Simply add the names of any library/ packages your program uses. You can additionally specify versions of the installation. Below is an example for a project usinf dependencies funix, openai (version 1.1.1 or later) and requests.  
+
+```plaintext
+funix
+openai>=1.1.1
+requests
+```
 
 ### Configuration File
 
