@@ -1,6 +1,6 @@
 # Funix-Cloud
 
-Funix Cloud is a tool that helps you deploy your local or git repository to Funix Cloud.
+Funix Cloud is a tool created by Funix that helps you deploy your local or git repository to Funix Cloud.
 
 ## Requirements
 
