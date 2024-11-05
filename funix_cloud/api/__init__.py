@@ -290,7 +290,7 @@ def print_from_err(console: Console, code: ErrorCodes, data: dict | None = None)
 class Routes:
     login: str = "/user/login"
     register: str = "/user/register"
-    email: str = "/user/email/bind"
+    change_email: str = "/user/email/bind"
     me: str = "/user/me"
     two_fa_request: str = "/user/2fa/generate"
     two_fa_bind: str = "/user/2fa/bind"
@@ -327,7 +327,7 @@ class API:
 
     def bind_email(self, token: str, email: str) -> ServerResponse:
         r = requests.post(
-            self.base_url + Routes.email,
+            self.base_url + Routes.change_email,
             json={"email": email},
             headers={"Authorization": f"Bearer {token}"},
         )
