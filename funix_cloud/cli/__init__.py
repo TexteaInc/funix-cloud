@@ -28,7 +28,7 @@ maps = {
     "register": "register",
     "login": "login",
     "logout": "logout",
-    "email": "email",
+    "change-email": "change_email",
     "me": "me",
     "2fa": "two_fa",
     "change-password": "change_password",
@@ -558,9 +558,9 @@ class DeployCLI:
         self.__config.set("token", None)
         self.__console.print("Logout successful!")
 
-    def email(self, email: str):
+    def change_email(self, email: str):
         """
-        Bind an email to your account.
+        Change the email associated with your account.
 
         Args:
             email (str): Email to bind.
@@ -650,7 +650,7 @@ class DeployCLI:
 
     def change_password(self):
         """
-        Change password your password.
+        Change your password.
         """
         if not self.__token:
             self.__console.print("Please login first.")
