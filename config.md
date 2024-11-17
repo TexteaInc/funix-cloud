@@ -1,4 +1,4 @@
-# Kumo config file
+# Funix cloud config file
 
 ```toml
 [main]
@@ -6,7 +6,7 @@ name = "hello-funix"
 entry = "main.py"
 ```
 
-This is a minimized version of `kumo.toml` for most situations.
+This is a minimized version of `funix-cloud.toml` for most situations.
 
 The `main` section must be exist. `name` filed is mandatory, you need to fill in the project name.
 

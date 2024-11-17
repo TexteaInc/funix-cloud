@@ -81,7 +81,7 @@ funix-cloud run
 
 Writing in a configuration file is one of the best ways to deploy a project with complex options.
 
-Create a new file `kumo.toml` with these content:
+Create a new file `funix-cloud.toml` with these content:
 
 ```toml
 [main]

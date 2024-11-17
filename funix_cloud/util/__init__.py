@@ -87,3 +87,18 @@ def check_password(pwd: str) -> bool:
         return False
 
     return True
+
+def check_password_web(pwd: str) -> tuple[bool]:
+    upper, lower, number, special = False, False, False, False
+    count = len(pwd)
+    for ch in pwd:
+        if ch.isupper():
+            upper = True
+        if ch.islower():
+            lower = True
+        if ch.isnumeric():
+            number = True
+        if ch in __pwd_special_chars:
+            special = True
+    
+    return count >= 8 and count <= 64, upper, lower, number, special

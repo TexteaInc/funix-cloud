@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Optional, TypedDict, Literal
 
 import dateutil
+import funix
 import requests
 from dateutil import parser
 from qrcode import QRCode
@@ -39,6 +40,7 @@ maps = {
     "list": "list",
     "restore": "restore",
     "run": "run",
+    "web": "web",
 }
 
 
@@ -145,7 +147,7 @@ class DeployCLI:
         self.__console.print("Login successful! Your token is saved.")
 
         self.__console.print("Sending verification email...")
-        self.email(email)
+        self.change_email(email)
 
     def deploy(
         self,
@@ -393,19 +395,25 @@ class DeployCLI:
         if error and error != 0:
             print_from_err(self.__console, ErrorCodes(error))
     
+    def web(self):
+        """
+        Open Funix Cloud console page in browser
+        """
+        funix.run(os.path.join(os.path.dirname(__file__), "web.py"))
+    
     def run(self):
         """
         Deploy with configuration file
         """
-        if not os.path.exists("kumo.toml"):
-            self.__print_markdown("`kumo.toml` not found in current directory")
+        if not os.path.exists("funix-cloud.toml"):
+            self.__print_markdown("`funix-cloud.toml` not found in current directory")
             return
         
-        with open("kumo.toml") as f:
+        with open("funix-cloud.toml") as f:
             config = tomlkit.loads(f.read())
         
         if "main" not in config:
-            self.__print_markdown("`main` key not found in `kumo.toml`")
+            self.__print_markdown("`main` key not found in `funix-cloud.toml`")
             return
         
         application_name = config["main"]["name"]
